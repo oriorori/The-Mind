@@ -1,0 +1,25 @@
+name: ✨ 기능 추가 제안
+description: 새로운 기능을 제안하고 싶어요!
+title: "[Feature] "
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: "새로운 기능 아이디어가 있군요! 아래 내용을 채워주세요."
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: 기능 설명
+      placeholder: 어떤 기능이 필요한가요?
+    validations:
+      required: true
+  - type: checkboxes
+    id: components
+    attributes:
+      label: 필요한 구성 요소
+      options:
+        - label: Unity 컴포넌트
+        - label: 스크립트
+        - label: 애셋/리소스
+        - label: UI/UX
+        - label: 사운드
