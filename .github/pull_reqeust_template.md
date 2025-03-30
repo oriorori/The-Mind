@@ -1,12 +1,3 @@
----
-name: MR template
-about: 변경 사항에 대한 설명명
-title: ''
-labels: ''
-assignees: ''
-
----
-
 ### 변경 사항
 [이 MR에서 변경된 내용을 설명해주세요]
 
