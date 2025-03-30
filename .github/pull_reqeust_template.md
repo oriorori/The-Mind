@@ -1,3 +1,12 @@
+---
+name: MR template
+about: 변경 사항에 대한 설명명
+title: ''
+labels: ''
+assignees: ''
+
+---
+
 ### 변경 사항
 [이 MR에서 변경된 내용을 설명해주세요]
 
@@ -20,6 +29,3 @@ Closes #[이슈 번호]
 
 ### 추가 노트
 [리뷰어가 알아야 할 추가 정보를 작성해주세요]
-
-/label ~review
-
