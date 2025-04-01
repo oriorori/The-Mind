@@ -22,12 +22,20 @@ app.set('port', port);
 var server = http.createServer(app);
 
 /**
+ * Attack socket.io
+ */
+
+var io = require('../game')(server);
+
+/**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+
 
 /**
  * Normalize a port into a number, string, or false.
