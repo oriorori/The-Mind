@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+const roomController = require('../controllers/roomController');
+
+router.post('/createRoom', roomController.createRoom);
+router.post('/joinRoom', roomController.joinRoom);
+router.post('/destroyRoom', roomController.destroyRoom);
 
 module.exports = router;
