@@ -1,13 +1,14 @@
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class JoinRoomPanelController : MonoBehaviour, IGameUI
 {
     // text
-    [SerializeField] private TextMeshProUGUI _playerNameTMP;
-    [SerializeField] private TextMeshProUGUI _roomNumberTMP;
+    [SerializeField] private TMP_InputField _playerNameInput;
+    [SerializeField] private TMP_InputField _roomNumberInput;
     [SerializeField] private Button _joinRoomButton;
     [SerializeField] private Button _backButton;
     

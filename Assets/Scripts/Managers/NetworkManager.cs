@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.Networking;
 
 public class NetworkManager : Singleton<NetworkManager>
 {
-    public IEnumerator CreateRoom(CreateRoomData createRoomData)
+    public IEnumerator CreateRoom(CreateRoomData createRoomData, Action success)
     {
         string jsonString = JsonConvert.SerializeObject(createRoomData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
@@ -24,15 +25,19 @@ public class NetworkManager : Singleton<NetworkManager>
                 www.result == UnityWebRequest.Result.ProtocolError)
             {
                 Debug.Log("Error");
+                Debug.Log(www.responseCode);
 
                 if (www.responseCode == 409)
                 {
-                    Debug.Log("이미 존재하는 방 번호입니다");
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("이미 존재하는 방 번호입니다");
                 }
             }
             else
             {
                 var result = www.downloadHandler.text;
+                
+                success?.Invoke();
                 
                 Debug.Log(result);
             }

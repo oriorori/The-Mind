@@ -2,18 +2,18 @@ using UnityEngine;
 
 public struct CreateRoomData
 {
-    public string playerName;
-    public int roomID;
-    public int maxPlayers;
+    public string playerId;
+    public int roomId;
+    public int maxPlayerNumber;
 }
 
 public struct JoinRoomData
 {
-    public string playerName;
-    public int roomID;
+    public string playerId;
+    public int roomId;
 }
 
 public struct DestroyRoomData
 {
-    public int roomID;
+    public int roomId;
 }

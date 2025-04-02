@@ -13,6 +13,7 @@ module.exports = function(server) {
 
         socket.on('joinGame', ({playerId, roomId, maxPlayerNumber}) => {
         
+            console.log(`사용자 ${playerId}님이 방 #${roomId}에 입장했어요`);
             socket.join(roomId);
 
             if(!roomInfos[roomId]) {
