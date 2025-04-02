@@ -18,11 +18,11 @@ public class MultiplayController
 
     private Dictionary<string, Action<SocketIOResponse>> socketEventHandlers;
 
-    public Dictionary<EventType, Action> events;
-    private event Action OnJoinRoom;
-    private event Action OnSuggestStartGame;
-    private event Action OnReadyGame;
-    private event Action OnStartGame;
+    public Dictionary<EventType, Action<SocketIOResponse>> events;
+    private event Action<SocketIOResponse> OnJoinRoom;
+    private event Action<SocketIOResponse> OnSuggestStartGame;
+    private event Action<SocketIOResponse> OnReadyGame;
+    private event Action<SocketIOResponse> OnStartGame;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -48,7 +48,7 @@ public class MultiplayController
             { "refuseShurikenCli", RefuseShuriken}
         };
 
-        events = new Dictionary<EventType, Action>()
+        events = new Dictionary<EventType, Action<SocketIOResponse>>()
         {
             { EventType.JoinRoom, OnJoinRoom },
             { EventType.SuggestStartGame, OnSuggestStartGame },
@@ -97,7 +97,7 @@ public class MultiplayController
 
     private void JoinRoom(SocketIOResponse response) // 서버에 joingame을 보낼시 response로 joinroomcli가 오면 자동 실행
     {
-        events[EventType.JoinRoom]?.Invoke();
+        events[EventType.JoinRoom]?.Invoke(response);
     }
 
     private void SuggestStartGame(SocketIOResponse response)
@@ -147,6 +147,12 @@ public class MultiplayController
 
     public void JoinGame(string playerId, int roomId, int playerNumber)
     {
-        _socket.Emit("joinGame", playerId, roomId, playerNumber);
+        
+        var data = new {
+            playerId = playerId,
+            roomId = roomId,
+            maxPlayerNumber = playerNumber
+        };
+        _socket.Emit("joinGame", data);
     }
 }

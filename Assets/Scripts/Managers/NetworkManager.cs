@@ -29,7 +29,8 @@ public class NetworkManager : Singleton<NetworkManager>
 
                 if (www.responseCode == 409)
                 {
-                    Debug.Log("이미 존재하는 방 번호입니다");
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("이미 존재하는 방 번호입니다");
                 }
             }
             else
