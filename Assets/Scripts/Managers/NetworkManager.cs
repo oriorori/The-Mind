@@ -1,13 +1,15 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class NetworkManager : Singleton<NetworkManager>
 {
-    public IEnumerator CreateRoom(CreateRoomData createRoomData, Action success)
+    public IEnumerator CreateRoom(CreateRoomData createRoomData, Action<Room> success)
     {
+        // success: 연결에 성공했을 때 실행되는 event
         string jsonString = JsonConvert.SerializeObject(createRoomData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
         
@@ -31,21 +33,23 @@ public class NetworkManager : Singleton<NetworkManager>
                 {
                     PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
                     popupUI.SetText("이미 존재하는 방 번호입니다");
+                    popupUI.Show();
                 }
             }
             else
             {
                 var result = www.downloadHandler.text;
-                
-                success?.Invoke();
-                
-                Debug.Log(result);
+                RoomResponse roomResponse = JsonConvert.DeserializeObject<RoomResponse>(result);
+                Room roomData = roomResponse.room;
+                GameManager.Instance.InitCurrentPlayingRoom(roomData);
+                success?.Invoke(roomData);
             }
         }
     }
 
-    public IEnumerator JoinRoom(JoinRoomData joinRoomData)
+    public IEnumerator JoinRoom(JoinRoomData joinRoomData, Action<Room> success)
     {
+        // success: 연결에 성공했을 때 실행되는 event
         string jsonString = JsonConvert.SerializeObject(joinRoomData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
 
@@ -66,23 +70,31 @@ public class NetworkManager : Singleton<NetworkManager>
 
                 if (www.responseCode == 404)
                 {
-                    Debug.Log("방이 존재하지 않음");
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("방이 존재하지 않습니다");
+                    popupUI.Show();
                 }
                 else if (www.responseCode == 403)
                 {
-                    Debug.Log("방이 가득 참");
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("방이 가득 찼습니다");
+                    popupUI.Show();
                 }
                 else if (www.responseCode == 409)
                 {
-                    Debug.Log("이미 방에 참가함");
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("이미 방에 참가했습니다");
+                    popupUI.Show();
                 }
             }
 
             else
             {
                 var resultString = www.downloadHandler.text;
-                
-                Debug.Log(resultString);
+                RoomResponse roomResponse = JsonConvert.DeserializeObject<RoomResponse>(resultString);
+                Room roomData = roomResponse.room;
+                GameManager.Instance.InitCurrentPlayingRoom(roomData);
+                success?.Invoke(roomData);
             }
         }
     }

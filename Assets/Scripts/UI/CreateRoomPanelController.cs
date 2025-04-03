@@ -72,10 +72,12 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         UIManager.Instance.ShowUI<MainMenuPanelController>(UI_TYPE.MainMenu, () => Hide());
     }
 
-    private async void OnSuccessCreateRoom()
+    private async void OnSuccessCreateRoom(Room roomData)
     {
-        WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
+        WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom);
+        waitingRoomPanelController.Initialize();
         GameManager.Instance.SubscribeEvent(EventType.JoinRoom, waitingRoomPanelController.AddNewPlayer);
         GameManager.Instance.multiplayController.JoinGame(_playerNameInput.text, Int32.Parse(_roomNumberInput.text), playerNum);
+        Hide();
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -27,17 +28,30 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
     
     void Start()
     {
-        _joinRoomButton.onClick.AddListener(OnClickCreateRoom);
+        _joinRoomButton.onClick.AddListener(OnClickJoinRoom);
         _backButton.onClick.AddListener(OnClickBack);
     }
 
-    private void OnClickCreateRoom()
+    private void OnClickJoinRoom()
     {
-        UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
+        JoinRoomData joinRoomData = new JoinRoomData()
+        {
+            playerId = _playerNameInput.text,
+            roomId = Int32.Parse(_roomNumberInput.text)
+        };
+        StartCoroutine(NetworkManager.Instance.JoinRoom(joinRoomData, OnSuccessJoinRoom));
     }
     
     private void OnClickBack()
     {
         UIManager.Instance.ShowUI<MainMenuPanelController>(UI_TYPE.MainMenu, () => Hide());
+    }
+
+    private async void OnSuccessJoinRoom(Room roomData)
+    {
+        WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
+        waitingRoomPanelController.Initialize();
+        GameManager.Instance.SubscribeEvent(EventType.JoinRoom, waitingRoomPanelController.AddNewPlayer);
+        GameManager.Instance.multiplayController.JoinGame(_playerNameInput.text, Int32.Parse(_roomNumberInput.text), roomData.maxPlayerNumber);
     }
 }

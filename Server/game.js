@@ -26,7 +26,6 @@ module.exports = function(server) {
             }
             roomInfos[roomId].players.push(playerId);
 
-            socket.emit('joinRoomCli', playerId);
             socket.to(roomId).emit('joinRoomCli', playerId);
 
             socket.data.playerId = playerId; // socket에 유저 데이터 저장
