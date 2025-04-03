@@ -14,6 +14,8 @@ public enum EventType
 
 public class MultiplayController
 {
+    // socket 통신을 담당한다
+    // 방에 참가한 시점 이후부터는 통신은 multiplayController가 담당한다.
     private SocketIOUnity _socket;
 
     private Dictionary<string, Action<SocketIOResponse>> socketEventHandlers;
@@ -34,7 +36,7 @@ public class MultiplayController
             Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
         });
 
-        socketEventHandlers = new Dictionary<string, Action<SocketIOResponse>>()
+        socketEventHandlers = new Dictionary<string, Action<SocketIOResponse>>() // socket에서 받은 response와 event를 연결해주는 dictionary
         {
             { "joinRoomCli", JoinRoom }, 
             { "suggestStartGameCli", SuggestStartGame },
@@ -48,7 +50,10 @@ public class MultiplayController
             { "refuseShurikenCli", RefuseShuriken}
         };
 
-        events = new Dictionary<EventType, Action<SocketIOResponse>>()
+        // socketEventHandlers의 event 안에서 또 따로 실행되어야 하는 함수들을 위한 event
+        // gamemanager를 통해 외부 스크립트에서 eventtype에 따라 구독을 한다
+        // 즉 socket에서 받은 response에 따라 같이 실행되는 event라고 보면 됨
+        events = new Dictionary<EventType, Action<SocketIOResponse>>() 
         {
             { EventType.JoinRoom, OnJoinRoom },
             { EventType.SuggestStartGame, OnSuggestStartGame },
@@ -97,6 +102,7 @@ public class MultiplayController
 
     private void JoinRoom(SocketIOResponse response) // 서버에 joingame을 보낼시 response로 joinroomcli가 오면 자동 실행
     {
+        GameManager.Instance.AddNewPlayer(response.GetValue<string>());
         events[EventType.JoinRoom]?.Invoke(response);
     }
 
