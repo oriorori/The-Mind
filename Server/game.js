@@ -69,6 +69,10 @@ module.exports = function(server) {
             socket.to(roomId).emit('refuseGameCli');
         })
 
+        socket.on('startStage', (playerCount) => {
+            
+        })
+
         // when someone play card
         socket.on('playCard', (cardNumber) => {
             const roomId = socket.data.roomId;

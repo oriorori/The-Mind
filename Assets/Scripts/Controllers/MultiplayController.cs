@@ -161,4 +161,9 @@ public class MultiplayController
         };
         _socket.Emit("joinGame", data);
     }
+
+    public void StartGame()
+    {
+        
+    }
 }
