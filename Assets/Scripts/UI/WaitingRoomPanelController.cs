@@ -11,11 +11,6 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
     [SerializeField] private RectTransform _playerListRect;
 
     [SerializeField] private GameObject _playerObject;
-    
-    void Start()
-    {
-
-    }
 
     public void Initialize()
     {
@@ -27,6 +22,8 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
             TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
             playerNameText.text = playerName;
         }
+
+        _startGameButton.onClick.AddListener(OnClickStartGameButton);
     }
 
     public void AddNewPlayer(SocketIOResponse response)
@@ -48,5 +45,10 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
     {
         gameObject.SetActive(false);
         return UniTask.CompletedTask;
+    }
+
+    private void OnClickStartGameButton()
+    {
+        GameManager.Instance.multiplayController.SuggestStartGame();
     }
 }

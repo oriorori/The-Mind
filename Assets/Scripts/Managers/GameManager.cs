@@ -10,6 +10,8 @@ public class GameManager : SingletonDontDestroy<GameManager>
 
     public Room currentPlayingRoom {get; private set;}
 
+    public string playerId;
+
     private void Start()
     {
         multiplayController = new MultiplayController();

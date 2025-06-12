@@ -47,7 +47,8 @@ public class MultiplayController
             { "suggestShurikenCli", SuggestShuriken },
             { "agreeShurikenCli", AgreeShuriken },
             { "useShurikenCli", UseShuriken },
-            { "refuseShurikenCli", RefuseShuriken}
+            { "refuseShurikenCli", RefuseShuriken},
+            { "startStageCli", StartStage}
         };
 
         // socketEventHandlers의 event 안에서 또 따로 실행되어야 하는 함수들을 위한 event
@@ -106,8 +107,14 @@ public class MultiplayController
         events[EventType.JoinRoom]?.Invoke(response);
     }
 
+    private void StartGame(SocketIOResponse response)
+    {
+        
+    }
+
     private void SuggestStartGame(SocketIOResponse response)
     {
+        WaitingReadyUIController popupUIController = UIManager.Instance.GetUI<WaitingReadyUIController>(UI_TYPE.WaitingReady);
         
     }
 
@@ -116,12 +123,12 @@ public class MultiplayController
         
     }
 
-    private void StartGame(SocketIOResponse response)
+    private void RefuseGame(SocketIOResponse response)
     {
         
     }
 
-    private void RefuseGame(SocketIOResponse response)
+    private void StartStage(SocketIOResponse response)
     {
         
     }
@@ -153,7 +160,6 @@ public class MultiplayController
 
     public void JoinGame(string playerId, int roomId, int playerNumber)
     {
-        
         var data = new {
             playerId = playerId,
             roomId = roomId,
@@ -161,9 +167,19 @@ public class MultiplayController
         };
         _socket.Emit("joinGame", data);
     }
-
-    public void StartGame()
+    
+    public void SuggestStartGame()
     {
-        
+        _socket.Emit("suggestStartGame");
+    }
+
+    public void ReadyGame()
+    {
+        _socket.Emit("readyGame");
+    }
+
+    public void RejectGame()
+    {
+        _socket.Emit("rejectGame");
     }
 }

@@ -11,7 +11,7 @@ module.exports = function(server) {
         var playerId = '';
         var roomId = 0;
 
-        socket.on('joinGame', ({playerId, roomId, maxPlayerNumber}) => {
+        socket.on('joinGame', ({playerId, roomId, maxPlayerNumber}) => { // 방 입장 로직
         
             console.log(`사용자 ${playerId}님이 방 #${roomId}에 입장했어요`);
             socket.join(roomId);
@@ -32,7 +32,7 @@ module.exports = function(server) {
             socket.data.roomId = roomId; // socket에 방 데이터 저장
         });
 
-        socket.on('startGame', () => {
+        socket.on('suggestStartGame', () => { // 누군가 startgame 버튼 눌렀을 때 로직
 
             const roomId = socket.data.roomId;
             const playerId = socket.data.playerId;
@@ -44,7 +44,7 @@ module.exports = function(server) {
         });
 
         // when someone agree with game start
-        socket.on('readyGame', () => {
+        socket.on('readyGame', () => { // 준비완료 버튼 눌렀을 때 로직
             const roomId = socket.data.roomId;
             const playerId = socket.data.playerId;
 
@@ -69,7 +69,7 @@ module.exports = function(server) {
             socket.to(roomId).emit('refuseGameCli');
         })
 
-        socket.on('startStage', (playerCount) => {
+        socket.on('startStage', (playerCount) => { // 각 스테이지 시작 로직
             
         })
 
