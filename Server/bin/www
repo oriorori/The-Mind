@@ -7,6 +7,8 @@
 var app = require('../app');
 var debug = require('debug')('themind:server');
 var http = require('http');
+var game = require('../game');
+const connectDB = require('../config/database')
 
 /**
  * Get port from environment and store in Express.
@@ -21,21 +23,16 @@ app.set('port', port);
 
 var server = http.createServer(app);
 
-/**
- * Attack socket.io
- */
-
-var io = require('../game')(server);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-
+// MongoDB 연결
+connectDB(()=>{
+  game(server);
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', onListening);
+}).catch(err => {
+  console.error("초기 DB 연결 실패: " + err);
+  process.exit(1);
+});
 
 /**
  * Normalize a port into a number, string, or false.

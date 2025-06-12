@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class WaitingReadyUIController : MonoBehaviour
+public class WaitingReadyUIController : MonoBehaviour, IGameUI
 {
     [SerializeField] private Button _applyButton;
     [SerializeField] private Button _rejectButton;
@@ -75,5 +75,17 @@ public class WaitingReadyUIController : MonoBehaviour
         }
         playerIconList.Clear();
         currentPlayerIndex = 0;
+    }
+
+    public UniTask Show()
+    {
+        gameObject.SetActive(true);
+        return UniTask.CompletedTask;
+    }
+
+    public UniTask Hide()
+    {
+        gameObject.SetActive(false);
+        return UniTask.CompletedTask;
     }
 }

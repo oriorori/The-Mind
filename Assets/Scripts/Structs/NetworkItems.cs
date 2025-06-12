@@ -1,6 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public struct SignupData
+{
+    public string userId;
+    public string nickname;
+    public string password;
+    public string passwordConfirmation;
+}
+
 public struct CreateRoomData
 {
     public string playerId;
