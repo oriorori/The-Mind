@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public struct SignupData
+public struct SignUpData
 {
     public string userId;
     public string nickname;
@@ -9,11 +10,22 @@ public struct SignupData
     public string passwordConfirmation;
 }
 
+public struct SignInData
+{
+    public string userId;
+    public string password;
+}
+
+public struct SignInResult
+{
+    public UserInfo userInfo;
+}
+
 public struct CreateRoomData
 {
     public string playerId;
     public int roomId;
-    public int maxPlayerNumber;
+    public int roomSize;
 }
 
 public struct JoinRoomData
@@ -27,7 +39,7 @@ public class Room
 {
     public int id;
     public List<string> players;
-    public int maxPlayerNumber;
+    public int roomSize;
     public int playerCount;
 }
 
@@ -40,4 +52,13 @@ public struct RoomResponse
 public struct DestroyRoomData
 {
     public int roomId;
+}
+
+[System.Serializable]
+public class GameInfo
+{
+    public int roomSize;
+    public int currentStage;
+    public int remainingLife;
+    public int remainingShurikens;
 }

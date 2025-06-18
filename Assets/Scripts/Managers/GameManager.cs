@@ -7,10 +7,11 @@ using UnityEngine;
 public class GameManager : SingletonDontDestroy<GameManager>
 {
     public MultiplayController multiplayController;
+    public InGameController inGameController;
 
     public Room currentPlayingRoom {get; private set;}
 
-    public string playerId;
+    public UserInfo userInfo;
 
     private void Start()
     {
@@ -30,5 +31,10 @@ public class GameManager : SingletonDontDestroy<GameManager>
     public void AddNewPlayer(string playerName)
     {
         currentPlayingRoom.players.Add(playerName);
+    }
+
+    public void StartGame(GameInfo gameInfo)
+    {
+        inGameController.InitGame(gameInfo);
     }
 }

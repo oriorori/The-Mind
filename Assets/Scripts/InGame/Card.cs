@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -8,6 +9,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
     private CanvasGroup _canvasGroup;
 
     [SerializeField] private RectTransform _centerRect;
+    [SerializeField] private TextMeshProUGUI _cardTMP;
     
     public bool IsDraggable { get; set; }
     
@@ -19,6 +21,11 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
         _canvas = GetComponentInParent<Canvas>();
         _canvasGroup = GetComponent<CanvasGroup>();
         IsDraggable = true;
+    }
+
+    public void ChangeCardNumber(int number)
+    {
+        _cardTMP.text = number.ToString();
     }
     
     public void OnBeginDrag(PointerEventData eventData)

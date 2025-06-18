@@ -6,8 +6,22 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const session = require('express-session');
 
 var app = express();
+
+var sessionMiddleware = session({
+  secret: 'your-secret-key',         // 꼭 비밀 키 넣기
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60,          // 1시간
+    httpOnly: true,
+    secure: false                    // HTTPS 환경이면 true
+  }
+});
+
+app.use(sessionMiddleware);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,6 +35,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class CreateRoomPanelController : MonoBehaviour, IGameUI
 {
     // text
-    [SerializeField] private TMP_InputField _playerNameInput;
+    // [SerializeField] private TMP_InputField _playerNameInput;
     [SerializeField] private TMP_InputField _roomNumberInput;
     [SerializeField] private TextMeshProUGUI _playerNumberTMP;
     
@@ -47,9 +47,9 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
     {
         CreateRoomData roomData = new CreateRoomData()
         {
-            playerId = _playerNameInput.text,
+            playerId = GameManager.Instance.userInfo.userId,
             roomId = Int32.Parse(_roomNumberInput.text),
-            maxPlayerNumber = playerNum
+            roomSize = playerNum
         };
 
         StartCoroutine(NetworkManager.Instance.CreateRoom(roomData, OnSuccessCreateRoom));
@@ -75,9 +75,10 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
     private async void OnSuccessCreateRoom(Room roomData)
     {
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom);
+        GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
+        
         waitingRoomPanelController.Initialize();
-        GameManager.Instance.SubscribeEvent(EventType.JoinRoom, waitingRoomPanelController.AddNewPlayer);
-        GameManager.Instance.multiplayController.JoinGame(_playerNameInput.text, Int32.Parse(_roomNumberInput.text), playerNum);
+        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, Int32.Parse(_roomNumberInput.text), playerNum);
         Hide();
     }
 }

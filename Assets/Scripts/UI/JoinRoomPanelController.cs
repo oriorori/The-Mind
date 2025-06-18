@@ -50,8 +50,8 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
     private async void OnSuccessJoinRoom(Room roomData)
     {
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
+        GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
         waitingRoomPanelController.Initialize();
-        GameManager.Instance.SubscribeEvent(EventType.JoinRoom, waitingRoomPanelController.AddNewPlayer);
-        GameManager.Instance.multiplayController.JoinGame(_playerNameInput.text, Int32.Parse(_roomNumberInput.text), roomData.maxPlayerNumber);
+        GameManager.Instance.multiplayController.SendJoinGame(_playerNameInput.text, Int32.Parse(_roomNumberInput.text), roomData.roomSize);
     }
 }

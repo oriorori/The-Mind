@@ -24,15 +24,16 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         }
 
         _startGameButton.onClick.AddListener(OnClickStartGameButton);
+        GameManager.Instance.multiplayController.EventStartGame += ( (_) => { gameObject.SetActive(false); } );
     }
 
-    public void AddNewPlayer(SocketIOResponse response)
+    public void AddNewPlayer(string playerName)
     {
         // 나는 참가해있고 다른 누군가가 추가로 참가할 때 호출
         // multiplaycontroller의 joinroom에 구독해놓고 socket통신에서 joinRoomCli response가 오면 실행된다
         GameObject playerObject = Instantiate(_playerObject, _playerListRect);
         TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
-        playerNameText.text = response.GetValue<string>();
+        playerNameText.text = playerName;
     }
     
     public UniTask Show()
@@ -49,6 +50,15 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
 
     private void OnClickStartGameButton()
     {
-        GameManager.Instance.multiplayController.SuggestStartGame();
+        Room currentRoom = GameManager.Instance.currentPlayingRoom;
+        if (currentRoom.players.Count < currentRoom.roomSize)
+        {
+            PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+            popupUI.SetText("인원이 다 차지 않았습니다.");
+        }
+        else
+        {
+            GameManager.Instance.multiplayController.SendSuggestStartGame(GameManager.Instance.userInfo.userId);
+        }
     }
 }

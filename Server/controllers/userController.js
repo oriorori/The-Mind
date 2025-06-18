@@ -57,10 +57,9 @@ async function signIn(req, res) {
 
         console.log(`🟢 ${userId}님이 로그인했어요`);
 
-        return res.status(200).json({
-            result: ResponseType.SUCCESS,
-            userInfo: createUserInfo(existingUser),
-        });
+        var userInfo = createUserInfo(existingUser);
+
+        return res.status(200).json({userInfo: userInfo});
     }
 
   } catch (error) {

@@ -4,12 +4,12 @@ function createUserInfo(user) {
   return {
     userId: user?.userId || "",
     nickname: user?.nickname || "",
-    tier: user?.tier || 0,
-    score: user?.score || 0,
-    profileIndex: user?.profileIndex || 0,
+    coin: user?.coin || 0,
     winCount: user?.winCount || 0,
     loseCount: user?.loseCount || 0,
-    drawCount: user?.drawCount || 0,
+    waitingSecondPerNumber: user?.waitingSecondPerNumber || 0.0,
+    totalPlayedCard: user?.totalPlayedCard || 0,
+    unlockedCardBack: user?.unlockedCardBack || [0]
   };
 }
 function hashPassword(password, saltRounds = 10) {

@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('themind:server');
 var http = require('http');
-var game = require('../game');
+var game = require('../socket/game');
 const connectDB = require('../config/database')
 
 /**

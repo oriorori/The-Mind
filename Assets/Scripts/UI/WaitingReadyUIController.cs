@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using SocketIOClient;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -7,7 +8,7 @@ using UnityEngine.UI;
 public class WaitingReadyUIController : MonoBehaviour, IGameUI
 {
     [SerializeField] private Button _applyButton;
-    [SerializeField] private Button _rejectButton;
+    [FormerlySerializedAs("_rejectButton")] [SerializeField] private Button _refuseButton;
     
     
     [SerializeField] private GameObject _playerIcon;
@@ -19,13 +20,17 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
 
     void Awake()
     {
+        playerIconList = new List<GameObject>();
+        
         _applyButton.onClick.AddListener(OnClickApplyButton);
-        _rejectButton.onClick.AddListener(OnClickRejectButton);
+        _refuseButton.onClick.AddListener(OnClickRefuseButton);
+
+        GameManager.Instance.multiplayController.EventStartGame += ( (_) => { gameObject.SetActive(false); } );
     }
     
     public void Initialize(bool pressedStartButton)
     {
-        int playerNum = GameManager.Instance.currentPlayingRoom.maxPlayerNumber;
+        int playerNum = GameManager.Instance.currentPlayingRoom.roomSize;
         for (int i = 0; i < playerNum; i++)
         {
             playerIconList.Add(Instantiate(_playerIcon, _playerIconContainer.transform));
@@ -36,35 +41,37 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
         if (pressedStartButton)
         {
             _applyButton.gameObject.SetActive(false);
-            _rejectButton.gameObject.SetActive(false);
+            _refuseButton.gameObject.SetActive(false);
         }
         else
         {
             _applyButton.gameObject.SetActive(true);
-            _rejectButton.gameObject.SetActive(true);
+            _refuseButton.gameObject.SetActive(true);
         }
     }
 
     private void OnClickApplyButton()
     {
-        GameManager.Instance.multiplayController.ReadyGame();
+        GameManager.Instance.multiplayController.SendReadyGame();
+        ChangePlayerIconColorGreen();
         _applyButton.gameObject.SetActive(false);
-        _rejectButton.gameObject.SetActive(false);
+        _refuseButton.gameObject.SetActive(false);
     }
 
-    private void OnClickRejectButton()
+    private void OnClickRefuseButton()
     {
-        GameManager.Instance.multiplayController.RejectGame();
+        GameManager.Instance.multiplayController.SendRefuseGame();
     }
 
-    public void ChangePlayerIconColorGreen()
+    private void ChangePlayerIconColorGreen()
     {
         playerIconList[currentPlayerIndex++].GetComponent<Image>().color = Color.green;
     }
 
-    public void RejectStartingGame()
+    public void RefuseStartingGame()
     {
         playerIconList[currentPlayerIndex++].GetComponent<Image>().color = Color.red;
+        gameObject.SetActive(false);
     }
 
     public void OnDisable()
@@ -87,5 +94,10 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
     {
         gameObject.SetActive(false);
         return UniTask.CompletedTask;
+    }
+
+    private void OnStartGame(SocketIOResponse _)
+    {
+        
     }
 }

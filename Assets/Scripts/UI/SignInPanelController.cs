@@ -15,6 +15,7 @@ public class SignInPanelController : MonoBehaviour, IGameUI
     [SerializeField] private TextMeshProUGUI _inPlayerIdText;
     [SerializeField] private TextMeshProUGUI _inPasswordText;
     [SerializeField] private Button _inSignInButton;
+    [SerializeField] private Button _inBackButton;
     
     [Header("SignUp")]
     [SerializeField] private GameObject _signUpObject;
@@ -23,6 +24,7 @@ public class SignInPanelController : MonoBehaviour, IGameUI
     [SerializeField] private TextMeshProUGUI _upPasswordText;
     [SerializeField] private TextMeshProUGUI _upPasswordConfirmationText;
     [SerializeField] private Button _upSignUpButton;
+    [SerializeField] private Button _upBackButton;
 
     void Awake()
     {
@@ -58,12 +60,18 @@ public class SignInPanelController : MonoBehaviour, IGameUI
 
     private void OnClickInSignInButton()
     {
-        
+        SignInData signInData = new SignInData()
+        {
+            userId = _inPlayerIdText.text,
+            password = _inPasswordText.text,
+        };
+        StartCoroutine(NetworkManager.Instance.SignIn(signInData, OnSucceedSignIn));
+
     }
 
     private void OnClickUpSignUpButton()
     {
-        SignupData signupData = new SignupData()
+        SignUpData signUpData = new SignUpData()
         {
             userId = _upPlayerIdText.text,
             nickname = _upNicknameText.text,
@@ -71,7 +79,7 @@ public class SignInPanelController : MonoBehaviour, IGameUI
             passwordConfirmation = _upPasswordConfirmationText.text,
         };
         
-        StartCoroutine(NetworkManager.Instance.Signup(signupData, OnSucceedSignUp));
+        StartCoroutine(NetworkManager.Instance.Signup(signUpData, OnSucceedSignUp));
     }
 
     private void OnSucceedSignIn()
@@ -84,6 +92,11 @@ public class SignInPanelController : MonoBehaviour, IGameUI
     {
         PopupUIController popupUIController = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
         popupUIController.SetText("회원가입에 성공했습니다.");
+        popupUIController.SetCloseAction(() =>
+        {
+            _signUpObject.SetActive(false);
+            _startUpObject.SetActive(true);
+        });
     }
 
     public UniTask Show()

@@ -1,5 +1,6 @@
 const { ObjectId } = require("mongodb");
 
+// db와의 상호작용을 담당당
 exports.findUserByKey = async (key) => {
   const db = global.db.collection("users");
   return await db.findOne({ _id: new ObjectId(key) });
@@ -27,6 +28,6 @@ exports.insertUser = async (userId, hash, nickname) => {
     loseCount: 0,
     waitingSecondPerNumber: 0.0,
     totalPlayedCard: 0,
-    unlockedCardBack: ["default"]
+    unlockedCardBack: [0]
   });
 };
