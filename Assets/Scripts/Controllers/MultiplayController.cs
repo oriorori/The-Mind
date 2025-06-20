@@ -18,6 +18,11 @@ public class MultiplayController
     public event Action<GameInfo> EventStartGame;
     public event Action<SocketIOResponse> EventStartStage;
     public event Action<int[]> EventCardReceive;
+    public event Action<CardMoveInfo> EventCardMove;
+    public event Action<WrongCardPlayInfo> EventWrongCardPlay;
+    public event Action<RightCardPlayInfo> EventRightCardPlay;
+    public event Action<GameInfo> EventStageClear;
+    public event Action EventGameOver;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -42,13 +47,18 @@ public class MultiplayController
             { "readyGameCli", OnGameReadied },
             { "startGameCli", OnGameStarted },
             { "refuseGameCli", OnGameRefused },
-            { "playCardCli", OnCardPlayed },
+            { "cardMoveCli", OnCardMoved },
+            { "playWrongCardCli", OnWrongCardPlayed },
+            { "playRightCardCli", OnRightCardPlayed },
             { "suggestShurikenCli", OnShurikenSuggested },
             { "agreeShurikenCli", OnShurikenAgreed },
             { "useShurikenCli", OnShurikenUsed },
             { "refuseShurikenCli", OnShurikenRefused},
             { "startStageCli", OnStageStarted},
-            { "receiveCardsCli", OnCardsReceived}
+            { "receiveCardsCli", OnCardsReceived},
+            { "gameOverCli", OnGameOvered},
+            { "stageClearCli", OnStageCleared},
+            { "gameClearCli", OnGameCleared},
         };
 
         // 소켓(서버)에서 메시지를 보내면 그에 맞는 Action을 실행하도록 이벤트를 연결
@@ -68,7 +78,7 @@ public class MultiplayController
         
         _socket.Connect();
     }
-    
+
     void EnqueueAction(Action action)
     {
         lock (_actionQueue)
@@ -139,13 +149,13 @@ public class MultiplayController
     }
 
     private void OnGameReadied(SocketIOResponse response)
-    {
-        
+    {  
+        // WaitingReadyUI에서 ready, refuse 제거
     }
 
     private void OnGameRefused(SocketIOResponse response)
     {
-        
+        // waitingReadyUIController 비활성화
     }
 
     private void OnStageStarted(SocketIOResponse response)
@@ -153,9 +163,28 @@ public class MultiplayController
         
     }
 
-    private void OnCardPlayed(SocketIOResponse response)
+    private void OnCardMoved(SocketIOResponse response)
     {
-        
+        string cardMoveInfoString = response.ToString();
+        CardMoveInfo[] cardMoveInfos = JsonConvert.DeserializeObject<CardMoveInfo[]>(cardMoveInfoString);
+        CardMoveInfo cardMoveInfo = cardMoveInfos[0];
+        EventCardMove?.Invoke(cardMoveInfo);
+    }
+
+    private void OnWrongCardPlayed(SocketIOResponse response)
+    {
+        string cardPlayInfoString = response.ToString();
+        WrongCardPlayInfo[] cardPlayInfos = JsonConvert.DeserializeObject<WrongCardPlayInfo[]>(cardPlayInfoString);
+        WrongCardPlayInfo cardPlayInfo = cardPlayInfos[0];
+        EventWrongCardPlay?.Invoke(cardPlayInfo);
+    }
+
+    private void OnRightCardPlayed(SocketIOResponse response)
+    {
+        string cardPlayInfoString = response.ToString();
+        RightCardPlayInfo[] cardPlayInfos = JsonConvert.DeserializeObject<RightCardPlayInfo[]>(cardPlayInfoString);
+        RightCardPlayInfo cardPlayInfo = cardPlayInfos[0];
+        EventRightCardPlay?.Invoke(cardPlayInfo);
     }
 
     private void OnShurikenSuggested(SocketIOResponse response)
@@ -182,6 +211,26 @@ public class MultiplayController
     {
         int[] cards = response.GetValue<int[]>();
         EventCardReceive?.Invoke(cards);
+    }
+    
+    private void OnGameCleared(SocketIOResponse response)
+    {
+        
+    }
+
+    private void OnStageCleared(SocketIOResponse response)
+    {
+        string gameInfoString = response.ToString();
+        GameInfo[] gameInfos = JsonConvert.DeserializeObject<GameInfo[]>(gameInfoString);
+        GameInfo gameInfo = gameInfos[0];
+        
+        Debug.Log($"{gameInfo.currentStage - 1} 스테이지 클리어!");
+        EventStageClear?.Invoke(gameInfo);
+    }
+
+    private void OnGameOvered(SocketIOResponse response)
+    {
+        EventGameOver?.Invoke();
     }
 
     #endregion
@@ -215,6 +264,26 @@ public class MultiplayController
     public void SendRefuseGame()
     {
         _socket.Emit("refuseGame");
+    }
+
+    public void SendPlayCard(int cardNumber)
+    {
+        _socket.Emit("playCard", cardNumber);
+    }
+
+    public void SendCardMove(float ratioToCenter, float ratioToCenterVertical)
+    {
+        _socket.Emit("cardMove", ratioToCenter, ratioToCenterVertical);
+    }
+
+    public void SendRestartGame()
+    {
+        _socket.Emit("restartGame");
+    }
+
+    public void SendDestroyRoom()
+    {
+        _socket.Emit("destroyRoom");
     }
     #endregion
 }

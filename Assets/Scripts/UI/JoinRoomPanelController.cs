@@ -8,7 +8,6 @@ using UnityEngine.UI;
 public class JoinRoomPanelController : MonoBehaviour, IGameUI
 {
     // text
-    [SerializeField] private TMP_InputField _playerNameInput;
     [SerializeField] private TMP_InputField _roomNumberInput;
     [SerializeField] private Button _joinRoomButton;
     [SerializeField] private Button _backButton;
@@ -36,7 +35,7 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
     {
         JoinRoomData joinRoomData = new JoinRoomData()
         {
-            playerId = _playerNameInput.text,
+            playerId = GameManager.Instance.userInfo.userId,
             roomId = Int32.Parse(_roomNumberInput.text)
         };
         StartCoroutine(NetworkManager.Instance.JoinRoom(joinRoomData, OnSuccessJoinRoom));
@@ -52,6 +51,6 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
         GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
         waitingRoomPanelController.Initialize();
-        GameManager.Instance.multiplayController.SendJoinGame(_playerNameInput.text, Int32.Parse(_roomNumberInput.text), roomData.roomSize);
+        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, Int32.Parse(_roomNumberInput.text), roomData.roomSize);
     }
 }

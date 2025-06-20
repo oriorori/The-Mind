@@ -8,10 +8,16 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
     private Canvas _canvas;
     private CanvasGroup _canvasGroup;
 
-    [SerializeField] private RectTransform _centerRect;
-    [SerializeField] private TextMeshProUGUI _cardTMP;
+    private RectTransform _centerRect; // 화면 중앙 카드 놓는 곳
     
-    public bool IsDraggable { get; set; }
+    [SerializeField] private TextMeshProUGUI _cardTMP;
+
+    private int _number;
+
+    private float _positionUpdateInterval = 0.2f;
+    private float _elapsedTime = 0f;
+    
+    private bool IsDraggable { get; set; }
     
     private Vector2 _dragStartPosition;
     
@@ -20,12 +26,24 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
         _rt = GetComponent<RectTransform>();
         _canvas = GetComponentInParent<Canvas>();
         _canvasGroup = GetComponent<CanvasGroup>();
-        IsDraggable = true;
     }
 
-    public void ChangeCardNumber(int number)
+    public void SetCard(int number, RectTransform centerRect)
     {
+        _number = number;
         _cardTMP.text = number.ToString();
+        _centerRect = centerRect;
+    }
+
+    public void SetNumber(int number)
+    {
+        _number = number;
+        _cardTMP.text = number.ToString();
+    }
+
+    public int GetCardNumber()
+    {
+        return _number;
     }
     
     public void OnBeginDrag(PointerEventData eventData)
@@ -40,27 +58,47 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
     {
         if (!IsDraggable) return;
         
+        _elapsedTime += Time.deltaTime;
+        
         _rt.anchoredPosition += eventData.delta / _canvas.scaleFactor;
+
+        // 일정 주기마다 드래그하고있는 카드 position 정보 서버에 전송
+        if (_elapsedTime >= _positionUpdateInterval)
+        {
+            _elapsedTime = 0f;
+            SendCardMovement();
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         if (!IsDraggable) return;
         
+        _elapsedTime = 0f;
         _canvasGroup.blocksRaycasts = true;
 
         Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(_canvas.worldCamera, _rt.position);
 
         Rect rect = ToRect(_rt);
         Rect rectCenter = ToRect(_centerRect);
+        
+        // 카드를 중앙에 놓았을 때
         if (rect.Overlaps(rectCenter))
         {
+            GameManager.Instance.multiplayController.SendPlayCard(_number);
+            
             transform.SetParent(_centerRect);
+            _rt.anchorMin = new Vector2(0.5f, 0.5f);
+            _rt.anchorMax = new Vector2(0.5f, 0.5f);
             _rt.anchoredPosition = Vector2.zero;
-
+            
+            DeactivateDrag();
             return;
         }
+        
+        // 카드를 중앙에 놓지 않으면 원래자리로 복귀
         _rt.anchoredPosition = _dragStartPosition;
+        SendCardMovement();
     }
 
     private Rect ToRect(RectTransform rt)
@@ -72,7 +110,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
         return new Rect(bottomLeft, topRight - bottomLeft);
     }
 
-    public void DisableDrag()
+    public void DeactivateDrag()
     {
         IsDraggable = false;
     }
@@ -80,5 +118,16 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
     public void ActivateDrag()
     {
         IsDraggable = true;
+    }
+
+    private void SendCardMovement()
+    {
+        Vector2 cardContainerPosition = transform.parent.position;
+        Vector2 cardPosition = _rt.position;
+            
+        float ratioToCenter = (cardPosition.y - cardContainerPosition.y) / (Screen.height);
+        float rationToCenterVertical = (cardPosition.x - cardContainerPosition.x) / (Screen.width);
+
+        GameManager.Instance.multiplayController.SendCardMove(ratioToCenter, rationToCenterVertical);
     }
 }

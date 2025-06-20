@@ -1,8 +1,19 @@
-function getRandomNumbers(count, min = 1, max = 100) {
-  const numbers = [];
-  while (numbers.length < count) {
-    const n = Math.floor(Math.random() * (max - min + 1)) + min;
-    numbers.push(n);
-  }
-  return numbers;
+function createRoomInfo(roomSize) {
+  return {
+    players: [],
+    roomSize: roomSize,
+    waiting: false,
+    currentStage: 0,
+    remainingLife: 0,
+    remainingShurikens: 0,
+    shuffling: false,
+    playing: false,
+    gameStartVotes: new Set(),
+    shurikenVotes: new Set(),
+    cards: {}
+  };
+}
+
+module.exports = {
+  createRoomInfo
 }

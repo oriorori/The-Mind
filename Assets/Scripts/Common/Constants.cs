@@ -10,7 +10,6 @@ public class Constants
     public const string GameServerURL = "ws://localhost:3000";
     
     #endregion
-    
 }
 
 // public static class GameBaseData

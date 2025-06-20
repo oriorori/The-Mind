@@ -62,3 +62,24 @@ public class GameInfo
     public int remainingLife;
     public int remainingShurikens;
 }
+
+public class WrongCardPlayInfo
+{
+    public int playedCardNumber;
+    public string playedPlayer;
+    public int ramainingLife;
+    public Dictionary<string, int[]> lowerNumbers;
+}
+
+public class RightCardPlayInfo
+{
+    public int playedCardNumber;
+    public string playedPlayer;
+}
+
+public class CardMoveInfo
+{
+    public string playerId;
+    public float ratioToCenter;
+    public float ratioToCenterVertical;
+}

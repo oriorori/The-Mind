@@ -185,8 +185,8 @@ public class NetworkManager : Singleton<NetworkManager>
             }
         }
     }
-
-    public IEnumerator LeaveRoom(DestroyRoomData destroyRoomData)
+    
+    public IEnumerator DestroyRoom(DestroyRoomData destroyRoomData)
     {
         string jsonString = JsonConvert.SerializeObject(destroyRoomData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);

@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -12,17 +13,17 @@ public class SignInPanelController : MonoBehaviour, IGameUI
     
     [Header("SignIn")]
     [SerializeField] private GameObject _signInObject;
-    [SerializeField] private TextMeshProUGUI _inPlayerIdText;
-    [SerializeField] private TextMeshProUGUI _inPasswordText;
+    [SerializeField] private TMP_InputField _inPlayerIdText;
+    [SerializeField] private TMP_InputField _inPasswordText;
     [SerializeField] private Button _inSignInButton;
     [SerializeField] private Button _inBackButton;
     
     [Header("SignUp")]
     [SerializeField] private GameObject _signUpObject;
-    [SerializeField] private TextMeshProUGUI _upPlayerIdText;
-    [SerializeField] private TextMeshProUGUI _upNicknameText;
-    [SerializeField] private TextMeshProUGUI _upPasswordText;
-    [SerializeField] private TextMeshProUGUI _upPasswordConfirmationText;
+    [SerializeField] private TMP_InputField _upPlayerIdText;
+    [SerializeField] private TMP_InputField _upNicknameText;
+    [SerializeField] private TMP_InputField _upPasswordText;
+    [SerializeField] private TMP_InputField _upPasswordConfirmationText;
     [SerializeField] private Button _upSignUpButton;
     [SerializeField] private Button _upBackButton;
 
@@ -84,6 +85,7 @@ public class SignInPanelController : MonoBehaviour, IGameUI
 
     private void OnSucceedSignIn()
     {
+        GameManager.Instance.multiplayController.Initialize();
         UIManager.Instance.GetUI<MainMenuPanelController>(UI_TYPE.MainMenu);
         UIManager.Instance.HideUI<SignInPanelController>(UI_TYPE.SignIn);
     }

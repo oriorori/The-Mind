@@ -12,11 +12,12 @@ public class GameManager : SingletonDontDestroy<GameManager>
     public Room currentPlayingRoom {get; private set;}
 
     public UserInfo userInfo;
-
+    
     private void Start()
     {
         multiplayController = new MultiplayController();
-        multiplayController.Initialize();
+        inGameController = new InGameController();
+        // multiplayController.Initialize();
     }
 
     public void SubscribeEvent(EventType eventType, Action<SocketIOResponse> action)
