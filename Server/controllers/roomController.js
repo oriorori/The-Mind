@@ -1,12 +1,11 @@
 // 방 저장소
 let rooms = {};
-let roomIdCounter = 1;
 
 async function createRoom(req, res) {
   try {
-    const { playerId, roomId, maxPlayerNumber } = req.body;
+    const { playerId, roomId, roomSize } = req.body;
 
-    if(!playerId || !roomId || !maxPlayerNumber) {
+    if(!playerId || !roomId || !roomSize) {
       return res.status(400).json({ error: '필수 값 없음' });
     }
 
@@ -17,7 +16,7 @@ async function createRoom(req, res) {
     rooms[roomId] = {
       id: roomId,
       players: [playerId],
-      maxPlayerNumber: maxPlayerNumber,
+      roomSize: roomSize,
       playerCount: 1
     };
 
@@ -44,7 +43,7 @@ async function joinRoom(req, res){
       return res.status(404).json({ error: '방이 존재하지 않음' });
     }
 
-    if (room.players.length >= room.maxPlayerNumber) {
+    if (room.players.length >= room.roomSize) {
       return res.status(403).json({ error: '방이 가득참' });
     }
 
@@ -62,29 +61,21 @@ async function joinRoom(req, res){
   }
 }
 
-async function destroyRoom(req, res) {
+async function destroyRoom(roomId) {
   try {
-    const { roomId } = req.body;
-
-    if (!roomId) {
-      return res.status(400).json({ error: '필수 값 없음' });
-    }
-
     if (!rooms[roomId]) {
-      return res.status(404).json({ error: '방이 존재하지 않음' });
+      console.error(`방 #${roomId}이 존재하지 않습니다.`);
+      return;
     }
-
     delete rooms[roomId];
     console.log(`🟢 방 #${roomId}이 삭제되었습니다.`);
-    return res.json({ message: '방이 삭제되었습니다.' });
   } catch (error) {
     console.error('방 삭제 에러:', error);
-    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
 module.exports = {
   createRoom,
   joinRoom,
-  destroyRoom
+  destroyRoom,
 };

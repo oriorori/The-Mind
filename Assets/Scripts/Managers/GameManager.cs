@@ -7,13 +7,17 @@ using UnityEngine;
 public class GameManager : SingletonDontDestroy<GameManager>
 {
     public MultiplayController multiplayController;
+    public InGameController inGameController;
 
     public Room currentPlayingRoom {get; private set;}
 
+    public UserInfo userInfo;
+    
     private void Start()
     {
         multiplayController = new MultiplayController();
-        multiplayController.Initialize();
+        inGameController = new InGameController();
+        // multiplayController.Initialize();
     }
 
     public void SubscribeEvent(EventType eventType, Action<SocketIOResponse> action)
@@ -28,5 +32,10 @@ public class GameManager : SingletonDontDestroy<GameManager>
     public void AddNewPlayer(string playerName)
     {
         currentPlayingRoom.players.Add(playerName);
+    }
+
+    public void StartGame(GameInfo gameInfo)
+    {
+        inGameController.InitGame(gameInfo);
     }
 }

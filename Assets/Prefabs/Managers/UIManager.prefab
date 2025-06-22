@@ -46,6 +46,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _uiPrefabs:
     _serializedList:
+    - Key: 7
+      Value: {fileID: 4488352914690032413, guid: 5fff0aa1d3edbf147bf3086d2eb5e44b, type: 3}
     - Key: 0
       Value: {fileID: 4488352914690032413, guid: 0559473cf9e62ce4196e97fc0f26d1c2, type: 3}
     - Key: 1
@@ -56,3 +58,7 @@ MonoBehaviour:
       Value: {fileID: 3878849979130573195, guid: edf4b8405cb837747b8b652be6ea77f1, type: 3}
     - Key: 5
       Value: {fileID: 232115060192307130, guid: 336807ff6b4c7f2488a7ca852a20ff39, type: 3}
+    - Key: 3
+      Value: {fileID: 1876556809103591746, guid: f5af1ac58249ef3469c22559b98bdba9, type: 3}
+    - Key: 6
+      Value: {fileID: 232115060192307130, guid: e22e0f190ccae3c458f9095d94a416a6, type: 3}

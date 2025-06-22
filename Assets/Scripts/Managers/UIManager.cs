@@ -15,7 +15,9 @@ public enum UI_TYPE
     JoinRoom,
     Game,
     WaitingRoom,
-    Popup
+    Popup,
+    WaitingReady,
+    SignIn
 }
 
 

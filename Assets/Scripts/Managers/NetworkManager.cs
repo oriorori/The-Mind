@@ -7,6 +7,93 @@ using UnityEngine.Networking;
 
 public class NetworkManager : Singleton<NetworkManager>
 {
+    public IEnumerator Signup(SignUpData signUpData, Action success)
+    {
+        // success: 연결에 성공했을 때 실행되는 event
+        string jsonString = JsonConvert.SerializeObject(signUpData);
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+        using (UnityWebRequest www =
+               new UnityWebRequest(Constants.ServerURL + "/users/signUp",
+                   UnityWebRequest.kHttpVerbPOST))
+        {
+            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            www.downloadHandler = new DownloadHandlerBuffer();
+            www.SetRequestHeader("Content-Type", "application/json");
+            
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.ConnectionError ||
+                www.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.Log("Error");
+                Debug.Log(www.responseCode);
+
+                if (www.responseCode == 409)
+                {
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("이미 가입된 플레이어입니다");
+                    popupUI.Show();
+                }
+                else if (www.responseCode == 401)
+                {
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("비밀번호가 일치하지 않습니다");
+                    popupUI.Show();
+                }
+            }
+            else
+            {
+                var result = www.downloadHandler.text;
+                Debug.Log("회원가입 완료");
+                success?.Invoke();
+            }
+        }
+    }
+
+    public IEnumerator SignIn(SignInData signInData, Action success)
+    {
+        string jsonString = JsonConvert.SerializeObject(signInData);
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+        using (UnityWebRequest www =
+               new UnityWebRequest(Constants.ServerURL + "/users/signIn",
+                   UnityWebRequest.kHttpVerbPOST))
+        {
+            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            www.downloadHandler = new DownloadHandlerBuffer();
+            www.SetRequestHeader("Content-Type", "application/json");
+            
+            yield return www.SendWebRequest();
+            if (www.result == UnityWebRequest.Result.ConnectionError ||
+                www.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.Log("Error");
+                Debug.Log(www.responseCode);
+
+                if (www.responseCode == 401)
+                {
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("비밀번호가 일치하지 않습니다.");
+                    popupUI.Show();
+                }
+                else if (www.responseCode == 404)
+                {
+                    PopupUIController popupUI = UIManager.Instance.GetUI<PopupUIController>(UI_TYPE.Popup);
+                    popupUI.SetText("존재하지 않는 아이디입니다.");
+                    popupUI.Show();
+                }
+            }
+            else
+            {
+                var result = www.downloadHandler.text;
+                SignInResult signInResult = JsonConvert.DeserializeObject<SignInResult>(result);
+                GameManager.Instance.userInfo = signInResult.userInfo;
+                success?.Invoke();
+            }
+        }
+    }
+    
     public IEnumerator CreateRoom(CreateRoomData createRoomData, Action<Room> success)
     {
         // success: 연결에 성공했을 때 실행되는 event
@@ -98,8 +185,8 @@ public class NetworkManager : Singleton<NetworkManager>
             }
         }
     }
-
-    public IEnumerator LeaveRoom(DestroyRoomData destroyRoomData)
+    
+    public IEnumerator DestroyRoom(DestroyRoomData destroyRoomData)
     {
         string jsonString = JsonConvert.SerializeObject(destroyRoomData);
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);

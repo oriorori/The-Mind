@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -8,6 +9,7 @@ public class PopupUIController : MonoBehaviour, IGameUI
     [SerializeField] private TextMeshProUGUI popupText;
     
     [SerializeField] private Button closeButton;
+    private Action onClosePopupUI;
 
     void Start()
     {
@@ -17,6 +19,11 @@ public class PopupUIController : MonoBehaviour, IGameUI
     public void SetText(string text)
     {
         popupText.text = text;
+    }
+
+    public void SetCloseAction(Action closeAction)
+    {
+        onClosePopupUI = closeAction;
     }
     
     public UniTask Show()
@@ -33,6 +40,8 @@ public class PopupUIController : MonoBehaviour, IGameUI
 
     private void OnClickClose()
     {
+        onClosePopupUI?.Invoke();
         Hide();
+        onClosePopupUI = null;
     }
 }
