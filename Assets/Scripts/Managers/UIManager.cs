@@ -18,7 +18,8 @@ public enum UI_TYPE
     Popup,
     WaitingReady,
     SignIn,
-    GameOverPopup
+    GameOverPopup,
+    ShurikenVoteUI,
 }
 
 

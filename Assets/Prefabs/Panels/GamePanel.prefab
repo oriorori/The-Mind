@@ -202,8 +202,9 @@ GameObject:
   - component: {fileID: 1628726567754595532}
   - component: {fileID: 6301232320081356976}
   - component: {fileID: 2325617952348204908}
+  - component: {fileID: 4409005155052588432}
   m_Layer: 5
-  m_Name: UseShuriken
+  m_Name: SuggestShuriken
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -223,11 +224,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5979033772493279557}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -156, y: -292}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -489, y: 0}
   m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 1, y: 1}
 --- !u!222 &6301232320081356976
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -249,7 +250,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0, g: 0.2697544, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -266,6 +267,50 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4409005155052588432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1313881986677525333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 2325617952348204908}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1743755529558723692
 GameObject:
   m_ObjectHideFlags: 0
@@ -365,21 +410,25 @@ MonoBehaviour:
     rectTransform: {fileID: 2594087930527073005}
     cardContainer: {fileID: 7408698905039995400}
     disposedCardContainer: {fileID: 2939152303838495402}
+    remainingCards: []
   _bottomPlayerPlayArea:
     direction: 6
     rectTransform: {fileID: 4285454403488534255}
     cardContainer: {fileID: 367081470602863325}
     disposedCardContainer: {fileID: 166913955086654782}
+    remainingCards: []
   _leftPlayerPlayArea:
     direction: 9
     rectTransform: {fileID: 8322297743445335458}
     cardContainer: {fileID: 944177816411470809}
     disposedCardContainer: {fileID: 5317350284725485087}
+    remainingCards: []
   _topPlayerPlayArea:
     direction: 12
     rectTransform: {fileID: 7106993935515003710}
     cardContainer: {fileID: 3870227444391427638}
     disposedCardContainer: {fileID: 1107726474616225263}
+    remainingCards: []
   _stageTMP: {fileID: 5302632852955556002}
   _remainingLifeTMP: {fileID: 6507584369598067588}
   _remainingShurikensTMP: {fileID: 389678225013491821}
@@ -387,6 +436,7 @@ MonoBehaviour:
   _stageAlarmTMP: {fileID: 8102869867859912055}
   _cardPrefab: {fileID: 3871197424241933767, guid: 488accab6894668428aa2b4b2b9e01f2, type: 3}
   _centerRect: {fileID: 5229743385501980311}
+  _suggestShurikenButton: {fileID: 4409005155052588432}
 --- !u!1 &2028526405881317085
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,7 +566,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1121749387741307987
 RectTransform:
   m_ObjectHideFlags: 0

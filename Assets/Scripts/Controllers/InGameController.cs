@@ -42,7 +42,7 @@ public class InGameController
         {
             if (cardPlayInfo.lowerNumbers[playerId].Length > 0)
             {
-                _gamePanelController.ThrowAwayCards(playerId, cardPlayInfo.lowerNumbers[playerId]);
+                _gamePanelController.DiscardCards(playerId, cardPlayInfo.lowerNumbers[playerId]);
             }
         }
         

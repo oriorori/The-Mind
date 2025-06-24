@@ -26,6 +26,9 @@ public class MultiplayController
     public event Action<GameInfo> EventStageClear;
     public event Action EventGameOver;
     public event Action<string> EventBackToRoom;
+    public event Action<string> EventSuggestShurikenUse;
+    public event Action EventRefuseShuriken;
+    public event Action<ShurikenUseInfo> EventUseShuriken;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -54,7 +57,6 @@ public class MultiplayController
             { "playWrongCardCli", OnWrongCardPlayed },
             { "playRightCardCli", OnRightCardPlayed },
             { "suggestShurikenCli", OnShurikenSuggested },
-            { "agreeShurikenCli", OnShurikenAgreed },
             { "useShurikenCli", OnShurikenUsed },
             { "refuseShurikenCli", OnShurikenRefused},
             { "startStageCli", OnStageStarted},
@@ -193,22 +195,21 @@ public class MultiplayController
 
     private void OnShurikenSuggested(SocketIOResponse response)
     {
-        
-    }
-
-    private void OnShurikenAgreed(SocketIOResponse response)
-    {
-        
+        string firstSuggestedId = response.GetValue<string>();
+        EventSuggestShurikenUse?.Invoke(firstSuggestedId);
     }
 
     private void OnShurikenUsed(SocketIOResponse response)
     {
-        
+        string shurikenInfoString = response.ToString();
+        ShurikenUseInfo[] shurikenInfos = JsonConvert.DeserializeObject<ShurikenUseInfo[]>(shurikenInfoString);
+        ShurikenUseInfo shurikenUseInfo = shurikenInfos[0];
+        EventUseShuriken?.Invoke(shurikenUseInfo);
     }
 
     private void OnShurikenRefused(SocketIOResponse response)
     {
-        
+        EventRefuseShuriken?.Invoke();
     }
 
     private void OnCardsReceived(SocketIOResponse response)
@@ -284,6 +285,20 @@ public class MultiplayController
     public void SendCardMove(float ratioToCenter, float ratioToCenterVertical)
     {
         _socket.Emit("cardMove", ratioToCenter, ratioToCenterVertical);
+    }
+
+    public void SendSuggestShuriken(string playerId)
+    {
+        _socket.Emit("suggestShuriken", playerId);
+    }
+    public void SendAgreeShuriken(string playerId)
+    {
+        _socket.Emit("agreeShuriken", playerId);
+    }
+
+    public void SendRefuseShuriken(string playerId)
+    {
+        _socket.Emit("refuseShuriken", playerId);
     }
 
     public void SendBackToRoom()

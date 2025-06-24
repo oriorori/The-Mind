@@ -83,3 +83,9 @@ public class CardMoveInfo
     public float ratioToCenter;
     public float ratioToCenterVertical;
 }
+
+public class ShurikenUseInfo
+{
+    public int remainingShurikens;
+    public Dictionary<string, int> lowestNumbers;
+}

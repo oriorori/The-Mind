@@ -107,27 +107,28 @@ module.exports = (io, socket) => {
         }
         
         // 남은 카드가 없을 시 => 스테이지 클리어
-        if(remainingCardCount === 0) {
-            if(roomInfos[roomId].currentStage === stageData.totalStages[roomInfos[roomId].roomSize]) {
-                // 모든 스테이지를 클리어한 경우
-                roomInfos[roomId].playing = false; // 게임 상태 초기화
-                io.to(roomId).emit('gameClearCli', '모든 스테이지를 클리어했습니다! 축하합니다!');
-                return;
-            }
+        checkStageClear(io, roomId, remainingCardCount);
+        // if(remainingCardCount === 0) {
+        //     if(roomInfos[roomId].currentStage === stageData.totalStages[roomInfos[roomId].roomSize]) {
+        //         // 모든 스테이지를 클리어한 경우
+        //         roomInfos[roomId].playing = false; // 게임 상태 초기화
+        //         io.to(roomId).emit('gameClearCli', '모든 스테이지를 클리어했습니다! 축하합니다!');
+        //         return;
+        //     }
 
-            roomInfos[roomId].remainingLife += stageData.getLife[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 생명 회복
-            roomInfos[roomId].remainingShurikens += stageData.getShuriken[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 수리검 회복
-            roomInfos[roomId].currentStage += 1; // 다음 스테이지로 넘어감
-            roomInfos[roomId].shuffling = false; // 스테이지가 끝났으므로 셔플 상태 초기화
+        //     roomInfos[roomId].remainingLife += stageData.getLife[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 생명 회복
+        //     roomInfos[roomId].remainingShurikens += stageData.getShuriken[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 수리검 회복
+        //     roomInfos[roomId].currentStage += 1; // 다음 스테이지로 넘어감
+        //     roomInfos[roomId].shuffling = false; // 스테이지가 끝났으므로 셔플 상태 초기화
 
-            io.to(roomId).emit('stageClearCli', {
-                roomSize: roomInfos[roomId].roomSize,
-                currentStage: roomInfos[roomId].currentStage,
-                remainingLife: roomInfos[roomId].remainingLife,
-                remainingShurikens: roomInfos[roomId].remainingShurikens
-            });
-            return;
-        }
+        //     io.to(roomId).emit('stageClearCli', {
+        //         roomSize: roomInfos[roomId].roomSize,
+        //         currentStage: roomInfos[roomId].currentStage,
+        //         remainingLife: roomInfos[roomId].remainingLife,
+        //         remainingShurikens: roomInfos[roomId].remainingShurikens
+        //     });
+        //     return;
+        // }
     });
 
     // use shuriken at first
@@ -138,7 +139,7 @@ module.exports = (io, socket) => {
         if(!roomInfos[roomId].shurikenVotes) roomInfos[roomId].shurikenVotes = new Set();
         roomInfos[roomId].shurikenVotes.add(playerId);
 
-        socket.to(roomId).emit('suggestShurikenCli', playerId);
+        io.to(roomId).emit('suggestShurikenCli', playerId);
     });
 
     // agree with shuriken using
@@ -150,8 +151,8 @@ module.exports = (io, socket) => {
         roomInfos[roomId].shurikenVotes.add(playerId);
 
         const voteCount = roomInfos[roomId].shurikenVotes.size;
-        const roomSize = roomInfos[roomId].maxPlayerNumber;
-
+        const roomSize = roomInfos[roomId].roomSize;
+        console.log(`방 #${roomId}에서 ${playerId}님이 수리검 사용에 동의했습니다. 현재 투표 수: ${voteCount}`);
         if(voteCount >= roomSize){
             const lowestNumbers = useShuriken(roomId); // 수리검 사용 로직 실행
             console.log(`방 #${roomId}에서 수리검 사용!`);
@@ -161,9 +162,9 @@ module.exports = (io, socket) => {
             });
             roomInfos[roomId].shurikenVotes.clear(); // 투표 초기화
         }
-        else{
-            io.to(roomId).emit('agreeShurikenCli', playerId);
-        }
+
+        checkStageClear(io, roomId, Object.values(roomInfos[roomId].cards).reduce((acc, cards) => acc + cards.length, 0)); // 남은 카드 개수로 스테이지 클리어 체크
+    
     });
 
     // disagree with shuriken using
@@ -188,4 +189,28 @@ function useShuriken(roomId) {
         lowestNumbers[player] = roomInfos[roomId].cards[player].shift(); // 각 플레이어의 가장 낮은 카드
     }
     return lowestNumbers; // 각 플레이어의 가장 낮은 카드 반환
+}
+
+function checkStageClear(io, roomId, remainingCardCount){
+        if(remainingCardCount === 0) {
+        if(roomInfos[roomId].currentStage === stageData.totalStages[roomInfos[roomId].roomSize]) {
+            // 모든 스테이지를 클리어한 경우
+            roomInfos[roomId].playing = false; // 게임 상태 초기화
+            io.to(roomId).emit('gameClearCli', '모든 스테이지를 클리어했습니다! 축하합니다!');
+            return;
+        }
+
+        roomInfos[roomId].remainingLife += stageData.getLife[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 생명 회복
+        roomInfos[roomId].remainingShurikens += stageData.getShuriken[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 수리검 회복
+        roomInfos[roomId].currentStage += 1; // 다음 스테이지로 넘어감
+        roomInfos[roomId].shuffling = false; // 스테이지가 끝났으므로 셔플 상태 초기화
+
+        io.to(roomId).emit('stageClearCli', {
+            roomSize: roomInfos[roomId].roomSize,
+            currentStage: roomInfos[roomId].currentStage,
+            remainingLife: roomInfos[roomId].remainingLife,
+            remainingShurikens: roomInfos[roomId].remainingShurikens
+        });
+        return;
+    }
 }

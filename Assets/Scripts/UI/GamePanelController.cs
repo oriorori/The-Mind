@@ -6,6 +6,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class PlayerPlayArea
@@ -36,8 +37,19 @@ public class GamePanelController : MonoBehaviour, IGameUI
     [Header("Card")]
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private RectTransform _centerRect;
+
+    [Header("Shuriken")] 
+    [SerializeField] private Button _suggestShurikenButton;
+    
     
     private Dictionary<string, PlayerPlayArea> _playerPlayAreas = new Dictionary<string, PlayerPlayArea>();
+
+    void Awake()
+    {
+        _suggestShurikenButton.onClick.AddListener(OnClickSuggestShurikenButton);
+        GameManager.Instance.multiplayController.EventSuggestShurikenUse += OnSuggestShuriken;
+        GameManager.Instance.multiplayController.EventUseShuriken += OnUseShuriken;
+    }
     
     public UniTask Show()
     {
@@ -191,7 +203,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
            _remainingShurikensTMP.text = remainingShurikens.ToString();
     }
 
-    public void ThrowAwayCards(string playerId, int[] cardNums)
+    public void DiscardCards(string playerId, int[] cardNums)
     {
         if (GameManager.Instance.userInfo.userId == playerId) // local 클라이언트는 정확히 숫자에 맞는 카드 제거하기
         {
@@ -245,6 +257,32 @@ public class GamePanelController : MonoBehaviour, IGameUI
     {
         
     }
+
+    private void OnClickSuggestShurikenButton()
+    {
+        GameManager.Instance.multiplayController.SendSuggestShuriken(GameManager.Instance.userInfo.userId);
+    }
+
+    private void OnSuggestShuriken(string firstSuggetId)
+    {
+        ShurikenVoteUIController shurikenVoteUIController = UIManager.Instance.GetUI<ShurikenVoteUIController>(UI_TYPE.ShurikenVoteUI);
+        shurikenVoteUIController.Show();
+        shurikenVoteUIController.Initialize(firstSuggetId);
+    }
+
+    private void OnUseShuriken(ShurikenUseInfo shurikenUseInfo)
+    {
+        _remainingShurikensTMP.text = shurikenUseInfo.remainingShurikens.ToString();
+
+        foreach (string playerId in shurikenUseInfo.lowestNumbers.Keys)
+        {
+            if (shurikenUseInfo.lowestNumbers[playerId] < 1) return;
+            
+            int[] discardedNums = new int[1]{shurikenUseInfo.lowestNumbers[playerId]};
+            DiscardCards(playerId, discardedNums);
+        }
+    }
+    
 
     private void OnDisable()
     {
