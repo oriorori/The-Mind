@@ -5,25 +5,18 @@ using UnityEngine.UI;
 
 public class GameOverPopupUIController : MonoBehaviour, IGameUI
 {
-    [SerializeField] private Button _restartButton;
-    [SerializeField] private Button _exitButton;
-
-
+    [SerializeField] private Button _nextButton;
+    
     void OnEnable()
     {
-        _restartButton.onClick.AddListener(OnClickRestartButton);
-        _exitButton.onClick.AddListener(OnClickExitButton);
+        _nextButton.onClick.AddListener(OnClickNextButton);
     }
 
-    private void OnClickRestartButton()
+    private void OnClickNextButton()
     {
-        GameManager.Instance.multiplayController.SendRestartGame();
-        Hide();
-    }
-
-    private void OnClickExitButton()
-    {
-        GameManager.Instance.multiplayController.SendDestroyRoom();
+        UIManager.Instance.GetUI<GamePanelController>(UI_TYPE.Game).Hide();
+        UIManager.Instance.GetUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom).Show();
+        GameManager.Instance.multiplayController.SendBackToRoom();
         Hide();
     }
 

@@ -6,15 +6,20 @@ using UnityEngine;
 public class InGameController
 {
     private GamePanelController _gamePanelController;
-    
-    public void InitGame(GameInfo gameInfo)
+
+    public InGameController() // 이벤트 구독
     {
         GameManager.Instance.multiplayController.EventWrongCardPlay += OnWrongCardPlayed;
         GameManager.Instance.multiplayController.EventRightCardPlay += OnRightCardPlayed;
         GameManager.Instance.multiplayController.EventCardReceive += OnCardReceived;
         GameManager.Instance.multiplayController.EventStageClear += OnStageCleared;
         GameManager.Instance.multiplayController.EventGameOver += OnGameOver;
+    }
+    
+    public void InitGame(GameInfo gameInfo) // GamePanelController 띄우기
+    {
         _gamePanelController = UIManager.Instance.GetUI<GamePanelController>(UI_TYPE.Game);
+        _gamePanelController.Show();
         _gamePanelController.InitializeGame(gameInfo);
     }
 
@@ -41,7 +46,7 @@ public class InGameController
             }
         }
         
-        _gamePanelController.UpdateGameInfo(remainingLife: cardPlayInfo.ramainingLife);
+        _gamePanelController.UpdateGameInfo(remainingLife: cardPlayInfo.remainingLife);
     }
 
     private void OnRightCardPlayed(RightCardPlayInfo cardPlayInfo)
@@ -67,6 +72,7 @@ public class InGameController
 
     public void OnGameOver()
     {
-        _gamePanelController.GameOver();
+        UIManager.Instance.GetUI<GameOverPopupUIController>(UI_TYPE.GameOverPopup).Show();
+        _gamePanelController.GameOver(); // Ingame 화면 상호작용 안되도록 막기
     }
 }

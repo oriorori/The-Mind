@@ -95,9 +95,4 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
         gameObject.SetActive(false);
         return UniTask.CompletedTask;
     }
-
-    private void OnStartGame(SocketIOResponse _)
-    {
-        
-    }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -23,6 +25,7 @@ public class MultiplayController
     public event Action<RightCardPlayInfo> EventRightCardPlay;
     public event Action<GameInfo> EventStageClear;
     public event Action EventGameOver;
+    public event Action<string> EventBackToRoom;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -59,6 +62,7 @@ public class MultiplayController
             { "gameOverCli", OnGameOvered},
             { "stageClearCli", OnStageCleared},
             { "gameClearCli", OnGameCleared},
+            { "backToRoomCli", OnBackToRoom }
         };
 
         // 소켓(서버)에서 메시지를 보내면 그에 맞는 Action을 실행하도록 이벤트를 연결
@@ -111,7 +115,7 @@ public class MultiplayController
     
     #region response처리
 
-    private void OnRoomJoined(SocketIOResponse response) // 서버에 joingame을 보낼시 response로 joinroomcli가 오면 자동 실행
+    private void OnRoomJoined(SocketIOResponse response)
     {
         string playerName = response.GetValue<string>();
         GameManager.Instance.AddNewPlayer(playerName);
@@ -143,7 +147,7 @@ public class MultiplayController
     {
         string firstSuggestId = response.GetValue<string>();
         WaitingReadyUIController waitingReadyUI = UIManager.Instance.GetUI<WaitingReadyUIController>(UI_TYPE.WaitingReady);
-        
+        waitingReadyUI.Show();
         waitingReadyUI.Initialize(GameManager.Instance.userInfo.userId == firstSuggestId);
 
     }
@@ -233,6 +237,12 @@ public class MultiplayController
         EventGameOver?.Invoke();
     }
 
+    private void OnBackToRoom(SocketIOResponse response)
+    {
+        string playerName = response.GetValue<string>();
+        EventBackToRoom?.Invoke(playerName);
+    }
+
     #endregion
     
     #region 소켓으로 송신
@@ -276,9 +286,9 @@ public class MultiplayController
         _socket.Emit("cardMove", ratioToCenter, ratioToCenterVertical);
     }
 
-    public void SendRestartGame()
+    public void SendBackToRoom()
     {
-        _socket.Emit("restartGame");
+        _socket.Emit("backToRoom");
     }
 
     public void SendDestroyRoom()

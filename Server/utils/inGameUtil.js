@@ -10,7 +10,8 @@ function createRoomInfo(roomSize) {
     playing: false,
     gameStartVotes: new Set(),
     shurikenVotes: new Set(),
-    cards: {}
+    cards: {},
+    inWaitingRoom: []
   };
 }
 

@@ -39,10 +39,6 @@ public class GamePanelController : MonoBehaviour, IGameUI
     
     private Dictionary<string, PlayerPlayArea> _playerPlayAreas = new Dictionary<string, PlayerPlayArea>();
     
-    void OnEnable()
-    {
-    }
-    
     public UniTask Show()
     {
         gameObject.SetActive(true);
@@ -52,6 +48,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
     public UniTask Hide()
     {
         gameObject.SetActive(false);
+        
         return UniTask.CompletedTask;
     }
 
@@ -247,5 +244,23 @@ public class GamePanelController : MonoBehaviour, IGameUI
     public void GameOver()
     {
         
+    }
+
+    private void OnDisable()
+    {
+        // List 및 dictionary 초기화
+        foreach (Transform child in _centerRect)
+            Destroy(child.gameObject);
+        
+        foreach (PlayerPlayArea playerPlayArea in _playerPlayAreas.Values)
+        {
+            foreach(Transform child in playerPlayArea.disposedCardContainer)
+                Destroy(child.gameObject);
+            foreach (Card card in playerPlayArea.remainingCards)
+                Destroy(card.gameObject);
+            playerPlayArea.remainingCards.Clear();
+        }
+
+        _playerPlayAreas.Clear();
     }
 }

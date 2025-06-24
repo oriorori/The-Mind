@@ -77,7 +77,7 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom);
         GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
         
-        waitingRoomPanelController.Initialize();
+        waitingRoomPanelController.GetIntoRoom(roomData.players);
         GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, Int32.Parse(_roomNumberInput.text), playerNum);
         Hide();
     }

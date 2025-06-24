@@ -12,28 +12,36 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
 
     [SerializeField] private GameObject _playerObject;
 
-    public void Initialize()
+    private Dictionary<string, PlayerWaitingStatusController> _playerStatusDict;
+
+    void Awake()
+    {
+        _startGameButton.onClick.AddListener(OnClickStartGameButton);
+        _playerStatusDict = new Dictionary<string, PlayerWaitingStatusController>();
+        GameManager.Instance.multiplayController.EventStartGame += (_) => { OnGameStarted(); };
+        GameManager.Instance.multiplayController.EventBackToRoom += BackToRoom;
+    }
+    
+    public void GetIntoRoom(List<string> players)
     {
         // 처음 방에 들어갈 때 실행
         // http 통신에서 받은 playerList를 이용해 init
-        foreach (string playerName in GameManager.Instance.currentPlayingRoom.players)
+        foreach (string playerName in players)
         {
-            GameObject playerObject = Instantiate(_playerObject, _playerListRect);
-            TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
-            playerNameText.text = playerName;
+            AddWaitingPlayerStatus(playerName);
         }
+    }
 
-        _startGameButton.onClick.AddListener(OnClickStartGameButton);
-        GameManager.Instance.multiplayController.EventStartGame += ( (_) => { gameObject.SetActive(false); } );
+    public void BackToRoom(string playerName)
+    {
+        _playerStatusDict[playerName].ChangeStatus(WaitingStatus.waiting);
     }
 
     public void AddNewPlayer(string playerName)
     {
         // 나는 참가해있고 다른 누군가가 추가로 참가할 때 호출
         // multiplaycontroller의 joinroom에 구독해놓고 socket통신에서 joinRoomCli response가 오면 실행된다
-        GameObject playerObject = Instantiate(_playerObject, _playerListRect);
-        TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
-        playerNameText.text = playerName;
+        AddWaitingPlayerStatus(playerName);
     }
     
     public UniTask Show()
@@ -60,5 +68,24 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         {
             GameManager.Instance.multiplayController.SendSuggestStartGame(GameManager.Instance.userInfo.userId);
         }
+    }
+
+    private void OnGameStarted()
+    {
+        foreach (PlayerWaitingStatusController playerStatus in _playerStatusDict.Values)
+        {
+            playerStatus.ChangeStatus(WaitingStatus.playing);
+        }
+        Hide();
+    }
+
+    private void AddWaitingPlayerStatus(string playerName)
+    {
+        GameObject playerObject = Instantiate(_playerObject, _playerListRect);
+        PlayerWaitingStatusController playerStatusController = playerObject.GetComponent<PlayerWaitingStatusController>();
+        playerStatusController.ChangeStatus(WaitingStatus.waiting);
+        _playerStatusDict[playerName] = playerStatusController;
+        TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
+        playerNameText.text = playerName;
     }
 }
