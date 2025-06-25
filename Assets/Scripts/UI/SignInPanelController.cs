@@ -34,19 +34,11 @@ public class SignInPanelController : MonoBehaviour, IGameUI
         _signUpButton.onClick.AddListener(OnClickSignUpButton);
         _inSignInButton.onClick.AddListener(OnClickInSignInButton);
         _upSignUpButton.onClick.AddListener(OnClickUpSignUpButton);
-    }
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
+        _inBackButton.onClick.AddListener(OnClickInBackButton);
+        _upBackButton.onClick.AddListener(OnClickUpBackButton);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
+    #region OnClickButton
     private void OnClickSignInButton()
     {
         _startUpObject.SetActive(false);
@@ -67,7 +59,6 @@ public class SignInPanelController : MonoBehaviour, IGameUI
             password = _inPasswordText.text,
         };
         StartCoroutine(NetworkManager.Instance.SignIn(signInData, OnSucceedSignIn));
-
     }
 
     private void OnClickUpSignUpButton()
@@ -81,8 +72,27 @@ public class SignInPanelController : MonoBehaviour, IGameUI
         };
         
         StartCoroutine(NetworkManager.Instance.Signup(signUpData, OnSucceedSignUp));
+    }    
+    
+    private void OnClickInBackButton()
+    {
+        _inPlayerIdText.text = "";
+        _inPasswordText.text = "";
+        _signInObject.SetActive(false);
+        _startUpObject.SetActive(true);
     }
 
+    private void OnClickUpBackButton()
+    {
+        _upPlayerIdText.text = "";
+        _upNicknameText.text = "";
+        _upPasswordText.text = "";
+        _upPasswordConfirmationText.text = "";
+        _signUpObject.SetActive(false);
+        _startUpObject.SetActive(true);
+    }
+    #endregion
+    
     private void OnSucceedSignIn()
     {
         GameManager.Instance.multiplayController.Initialize();
@@ -109,6 +119,12 @@ public class SignInPanelController : MonoBehaviour, IGameUI
 
     public UniTask Hide()
     {
+        _inPlayerIdText.text = "";
+        _inPasswordText.text = "";
+        _upPlayerIdText.text = "";
+        _upNicknameText.text = "";
+        _upPasswordText.text = "";
+        _upPasswordConfirmationText.text = "";
         gameObject.SetActive(false);
         return UniTask.CompletedTask;
     }

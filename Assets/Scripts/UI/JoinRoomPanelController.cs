@@ -20,10 +20,10 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
 
     public UniTask Hide()
     {
+        _roomNumberInput.text = "";
         gameObject.SetActive(false);
         return UniTask.CompletedTask;
     }
-    
     
     void Start()
     {

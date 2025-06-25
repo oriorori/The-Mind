@@ -39,6 +39,7 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
 
     public UniTask Hide()
     {
+        _roomNumberInput.text = "";
         gameObject.SetActive(false);
         return UniTask.CompletedTask;
     }
