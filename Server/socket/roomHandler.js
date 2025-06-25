@@ -130,40 +130,44 @@ function setupRoomHandlers(io, socket){
     socket.on('leaveRoom', () => {
         const roomId = socket.data.roomId;
         const playerId = socket.data.playerId;
+        io.to(roomId).emit('leaveRoomCli', playerId);
+        roomInfos[roomId].players = roomInfos[roomId].players.filter(player => player !== playerId);
+        roomInfos[roomId].inWaitingRoom = roomInfos[roomId].inWaitingRoom.filter(player => player !== playerId);
         socket.leave(roomId);
-        socket.to(roomId).emit('leaveRoomCli', playerId);
+        console.log(`사용자 ${playerId}님이 방 #${roomId}에서 나갔어요`);
+
+        if(roomInfos[roomId].players.length === 0) {
+            destroyRoom(roomId); // 방에 남은 플레이어가 없으면 방 파괴
+            delete roomInfos[roomId]; // 방 정보 삭제
+            console.log(`방 #${roomId}이 파괴되었습니다.`);
+        }
 
         socket.data.roomId = '';
         socket.data.playerId = '';
     });
+}
 
-    socket.on('destroyRoom', async () =>{
-        const roomId = socket.data.roomId;
+function removePlayerFromRoom(io, roomId, playerId) {
+    if (!roomInfos[roomId]) {
+        console.error(`방 #${roomId}이 존재하지 않습니다.`);
+        return;
+    }
 
-        if(roomInfos[roomId]) {
-            // 클라이언트에게 request 전송
-            io.to(roomId).emit('destroyRoomCli');
-            
-            // 데이터 삭제
-            destroyRoom(roomId); // roomController의 rooms 객체에서 방 삭제
-            delete roomInfos[roomId]; // 방 정보 삭제
+    roomInfos[roomId].players = roomInfos[roomId].players.filter(player => player !== playerId);
+    roomInfos[roomId].inWaitingRoom = roomInfos[roomId].inWaitingRoom.filter(player => player !== playerId);
 
-            // 연결 해제
-            const socketsInRoom = await io.in(roomId).fetchSockets();
-            socketsInRoom.forEach(socket => {
-                socket.leave(roomId); // 방에 연결된 모든 소켓을 방에서 제거
-                socket.data.roomId = null;
-            });
-
-            console.log(`방 #${roomId}이 파괴되었습니다.`);
-        } 
-        else {
-            console.error(`방 #${roomId}이 존재하지 않습니다.`);
-        }
-    })
+    if (roomInfos[roomId].players.length === 0) {
+        destroyRoom(roomId); // 방에 남은 플레이어가 없으면 방 파괴
+        delete roomInfos[roomId]; // 방 정보 삭제
+        console.log(`방 #${roomId}이 파괴되었습니다.`);
+    } else {
+        io.to(roomId).emit('leaveRoomCli', playerId);
+        console.log(`사용자 ${playerId}님이 방 #${roomId}에서 나갔어요`);
+    }
 }
 
 module.exports = {
     setupRoomHandlers,
+    removePlayerFromRoom,
     roomInfos,
 };

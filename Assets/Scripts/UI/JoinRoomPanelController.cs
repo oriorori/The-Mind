@@ -11,7 +11,8 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
     [SerializeField] private TMP_InputField _roomNumberInput;
     [SerializeField] private Button _joinRoomButton;
     [SerializeField] private Button _backButton;
-    
+
+    private int _roomNumber;
     public UniTask Show()
     {
         gameObject.SetActive(true);
@@ -33,10 +34,11 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
 
     private void OnClickJoinRoom()
     {
+        _roomNumber = int.Parse(_roomNumberInput.text);
         JoinRoomData joinRoomData = new JoinRoomData()
         {
             playerId = GameManager.Instance.userInfo.userId,
-            roomId = Int32.Parse(_roomNumberInput.text)
+            roomId = _roomNumber
         };
         StartCoroutine(NetworkManager.Instance.JoinRoom(joinRoomData, OnSuccessJoinRoom));
     }
@@ -51,6 +53,6 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
         GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
         waitingRoomPanelController.GetIntoRoom(roomData.players);
-        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, Int32.Parse(_roomNumberInput.text), roomData.roomSize);
+        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, _roomNumber, roomData.roomSize);
     }
 }

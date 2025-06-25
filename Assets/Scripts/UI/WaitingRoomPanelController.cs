@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class WaitingRoomPanelController : MonoBehaviour, IGameUI
 {
     [SerializeField] private Button _startGameButton;
+    [SerializeField] private Button _leaveRoomButton;
     [SerializeField] private RectTransform _playerListRect;
 
     [SerializeField] private GameObject _playerObject;
@@ -17,8 +18,10 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
     void Awake()
     {
         _startGameButton.onClick.AddListener(OnClickStartGameButton);
+        _leaveRoomButton.onClick.AddListener(OnClickLeaveRoomButton);
         _playerStatusDict = new Dictionary<string, PlayerWaitingStatusController>();
         GameManager.Instance.multiplayController.EventStartGame += (_) => { OnGameStarted(); };
+        GameManager.Instance.multiplayController.EventLeaveRoom += OnRoomLeft;
         GameManager.Instance.multiplayController.EventBackToRoom += BackToRoom;
     }
     
@@ -66,8 +69,13 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         }
         else
         {
-            GameManager.Instance.multiplayController.SendSuggestStartGame(GameManager.Instance.userInfo.userId);
+            GameManager.Instance.multiplayController.SendSuggestStartGame();
         }
+    }
+
+    private void OnClickLeaveRoomButton()
+    {
+        
     }
 
     private void OnGameStarted()
@@ -79,6 +87,22 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         Hide();
     }
 
+    private void OnRoomLeft(string playerId)
+    {
+        if (playerId == GameManager.Instance.userInfo.userId) // 내가 나간 경우
+        {
+            UIManager.Instance.GetUI<MainMenuPanelController>(UI_TYPE.MainMenu).Show();
+            GameManager.Instance.InitCurrentPlayingRoom(null);
+            gameObject.SetActive(false);
+        }
+        else // 방의 다른 사람이 나간 경우
+        {
+            GameManager.Instance.currentPlayingRoom.players.Remove(playerId);
+            Destroy(_playerStatusDict[playerId].gameObject);
+            _playerStatusDict.Remove(playerId);
+        }
+    }
+
     private void AddWaitingPlayerStatus(string playerName)
     {
         GameObject playerObject = Instantiate(_playerObject, _playerListRect);
@@ -88,4 +112,5 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
         playerNameText.text = playerName;
     }
+    
 }

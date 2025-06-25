@@ -97,7 +97,7 @@ public class SignInPanelController : MonoBehaviour, IGameUI
     {
         GameManager.Instance.multiplayController.Initialize();
         UIManager.Instance.GetUI<MainMenuPanelController>(UI_TYPE.MainMenu);
-        UIManager.Instance.HideUI<SignInPanelController>(UI_TYPE.SignIn);
+        Hide();
     }
 
     private void OnSucceedSignUp()

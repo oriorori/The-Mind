@@ -17,6 +17,7 @@ public class MultiplayController
 
     public Dictionary<EventType, Action<SocketIOResponse>> events;
     public event Action<string> EventJoinRoom;
+    public event Action<string> EventLeaveRoom;
     public event Action<GameInfo> EventStartGame;
     public event Action<SocketIOResponse> EventStartStage;
     public event Action<int[]> EventCardReceive;
@@ -49,6 +50,7 @@ public class MultiplayController
             // 소켓통신에서 서버는 이벤트이름과 함께 데이터를 보낸다.
             // 이 dictionary의 key가 곧 이벤트 이름과 동일해야하며, value는 해당 이벤트를 받았을 때 실행할 Action인 것
             { "joinRoomCli", OnRoomJoined }, 
+            { "leaveRoomCli", OnRoomLeft },
             { "suggestStartGameCli", OnStartGameSuggested },
             { "readyGameCli", OnGameReadied },
             { "startGameCli", OnGameStarted },
@@ -122,6 +124,12 @@ public class MultiplayController
         string playerName = response.GetValue<string>();
         GameManager.Instance.AddNewPlayer(playerName);
         EventJoinRoom?.Invoke(playerName);
+    }
+
+    private void OnRoomLeft(SocketIOResponse response)
+    {
+        string playerId = response.GetValue<string>();
+        EventLeaveRoom?.Invoke(playerId);
     }
 
     private void OnGameStarted(SocketIOResponse response)
@@ -256,8 +264,13 @@ public class MultiplayController
         };
         _socket.Emit("joinGame", data);
     }
+
+    public void SendLeaveRoom()
+    {
+        _socket.Emit("leaveRoom");
+    }
     
-    public void SendSuggestStartGame(string playerId)
+    public void SendSuggestStartGame()
     {
         _socket.Emit("suggestStartGame");
     }
@@ -305,10 +318,15 @@ public class MultiplayController
     {
         _socket.Emit("backToRoom");
     }
-
-    public void SendDestroyRoom()
-    {
-        _socket.Emit("destroyRoom");
-    }
     #endregion
+
+    public async void DisconnectSocket()
+    {
+        if (_socket != null && _socket.Connected)
+        {
+            Debug.Log("🧹 GameManager에서 DisconnectAsync 호출 중...");
+            await _socket.DisconnectAsync();
+            Debug.Log("✅ 서버와 연결 정상 해제 완료");
+        }
+    }
 }

@@ -19,7 +19,8 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
     [SerializeField] private Button _backButton;
 
     // playerNum
-    private int playerNum;
+    private int _playerNum;
+    private int _roomNumber;
     
     void Start()
     {
@@ -28,7 +29,7 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         _createRoomButton.onClick.AddListener(OnClickCreateRoom);
         _backButton.onClick.AddListener(OnClickBack);
 
-        playerNum = Int32.Parse(_playerNumberTMP.text);
+        _playerNum = Int32.Parse(_playerNumberTMP.text);
     }
     
     public UniTask Show()
@@ -46,11 +47,12 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
 
     private void OnClickCreateRoom()
     {
+        _roomNumber = Int32.Parse(_roomNumberInput.text);
         CreateRoomData roomData = new CreateRoomData()
         {
             playerId = GameManager.Instance.userInfo.userId,
-            roomId = Int32.Parse(_roomNumberInput.text),
-            roomSize = playerNum
+            roomId = _roomNumber,
+            roomSize = _playerNum
         };
 
         StartCoroutine(NetworkManager.Instance.CreateRoom(roomData, OnSuccessCreateRoom));
@@ -58,14 +60,14 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
 
     private void OnClickNumberLeft()
     {
-        playerNum = Mathf.Max(2, playerNum-1);
-        _playerNumberTMP.text = playerNum.ToString();
+        _playerNum = Mathf.Max(2, _playerNum-1);
+        _playerNumberTMP.text = _playerNum.ToString();
     }
 
     private void OnClickNumberRight()
     {
-        playerNum = Mathf.Min(4, playerNum + 1);
-        _playerNumberTMP.text = playerNum.ToString();
+        _playerNum = Mathf.Min(4, _playerNum + 1);
+        _playerNumberTMP.text = _playerNum.ToString();
     }
 
     private void OnClickBack()
@@ -79,7 +81,7 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
         
         waitingRoomPanelController.GetIntoRoom(roomData.players);
-        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, Int32.Parse(_roomNumberInput.text), playerNum);
+        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, _roomNumber, _playerNum);
         Hide();
     }
 }

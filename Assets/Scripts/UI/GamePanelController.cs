@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
@@ -41,8 +42,12 @@ public class GamePanelController : MonoBehaviour, IGameUI
     [Header("Shuriken")] 
     [SerializeField] private Button _suggestShurikenButton;
     
-    
     private Dictionary<string, PlayerPlayArea> _playerPlayAreas = new Dictionary<string, PlayerPlayArea>();
+    
+    private float _curveHeight = 80f; // 포물선 높이
+    private float _curvature = 1.2f;
+    private float _spacing = 50f;            // 카드 간 간격
+    private float _curveAngle = 5f;    // 카드가 펼쳐지는 각도
 
     void Awake()
     {
@@ -101,6 +106,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
                     Card card = Instantiate(_cardPrefab, _playerPlayAreas[playerId].cardContainer).GetComponent<Card>();
                     _playerPlayAreas[playerId].remainingCards.Add(card);
                 }
+                ArrangeCard(playerId);
             }
         }
         _bottomPlayerPlayArea.remainingCards[0].ActivateDrag();
@@ -211,6 +217,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
             {
                 Card card = PopLowestCard(_bottomPlayerPlayArea.remainingCards);
                 card.DeactivateDrag();
+                card.transform.rotation = Quaternion.identity;
                 card.transform.SetParent(_bottomPlayerPlayArea.disposedCardContainer);
             }
             if(_bottomPlayerPlayArea.remainingCards.Count > 0) _bottomPlayerPlayArea.remainingCards[0].ActivateDrag();
@@ -223,6 +230,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
             foreach (int cardNum in cardNums)
             {
                 Card card = PopLowestCard(playerPlayArea.remainingCards);
+                card.transform.rotation = Quaternion.identity;
                 card.transform.SetParent(playerPlayArea.disposedCardContainer);
                 card.SetNumber(cardNum);
             }
@@ -282,7 +290,58 @@ public class GamePanelController : MonoBehaviour, IGameUI
             DiscardCards(playerId, discardedNums);
         }
     }
+
+    private void ArrangeCard(string playerId)
+    {
+        // 실제 카드를 들 때 처럼 포물선 형태로 카드를 배열
+        int count = _playerPlayAreas[playerId].remainingCards.Count;
+        float centerIndex = (count - 1) / 2f;
+
+        switch (_playerPlayAreas[playerId].direction)
+        {
+            case 12:
+                for (int i = 0; i < count; i++)
+                {
+                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+
+                    // 포물선 형태로 카드 배열
+                    float x = (i - centerIndex) * _spacing;
+                    float y = Mathf.Pow(i - centerIndex, 2) * _curvature - _curveHeight;
+                    card.anchoredPosition = new Vector2(x, y);
+
+                    // 카드에 회전 더하기
+                    float angle = (i - centerIndex) * _curveAngle;
+                    card.localRotation = Quaternion.Euler(0, 0, angle);
+                }
+                break;
+            case 9:
+                for (int i = 0; i < count; i++)
+                {
+                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
     
+                    float y = (i - centerIndex) * _spacing;
+                    float x = Mathf.Pow(i - centerIndex, 2) * _curvature + _curveHeight;
+                    card.anchoredPosition = new Vector2(x, y);
+    
+                    float angle = (i - centerIndex) * _curveAngle - 90f;
+                    card.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                }
+                break;
+            case 3:
+                for (int i = 0; i < count; i++)
+                {
+                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+    
+                    float y = (i - centerIndex) * _spacing;
+                    float x = Mathf.Pow(i - centerIndex, 2) * _curvature - _curveHeight;
+                    card.anchoredPosition = new Vector2(x, y);
+    
+                    float angle = (i - centerIndex) * -_curveAngle + 90f;
+                    card.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                }
+                break;
+        }
+    }
 
     private void OnDisable()
     {

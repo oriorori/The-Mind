@@ -108,27 +108,6 @@ module.exports = (io, socket) => {
         
         // 남은 카드가 없을 시 => 스테이지 클리어
         checkStageClear(io, roomId, remainingCardCount);
-        // if(remainingCardCount === 0) {
-        //     if(roomInfos[roomId].currentStage === stageData.totalStages[roomInfos[roomId].roomSize]) {
-        //         // 모든 스테이지를 클리어한 경우
-        //         roomInfos[roomId].playing = false; // 게임 상태 초기화
-        //         io.to(roomId).emit('gameClearCli', '모든 스테이지를 클리어했습니다! 축하합니다!');
-        //         return;
-        //     }
-
-        //     roomInfos[roomId].remainingLife += stageData.getLife[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 생명 회복
-        //     roomInfos[roomId].remainingShurikens += stageData.getShuriken[roomInfos[roomId].currentStage]; // 스테이지 클리어 시 수리검 회복
-        //     roomInfos[roomId].currentStage += 1; // 다음 스테이지로 넘어감
-        //     roomInfos[roomId].shuffling = false; // 스테이지가 끝났으므로 셔플 상태 초기화
-
-        //     io.to(roomId).emit('stageClearCli', {
-        //         roomSize: roomInfos[roomId].roomSize,
-        //         currentStage: roomInfos[roomId].currentStage,
-        //         remainingLife: roomInfos[roomId].remainingLife,
-        //         remainingShurikens: roomInfos[roomId].remainingShurikens
-        //     });
-        //     return;
-        // }
     });
 
     // use shuriken at first
