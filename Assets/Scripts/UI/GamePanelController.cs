@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AYellowpaper.SerializedCollections;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class PlayerPlayArea
@@ -30,17 +32,29 @@ public class GamePanelController : MonoBehaviour, IGameUI
     [SerializeField] private TextMeshProUGUI _remainingShurikensTMP;
     
     [Header("Stage Alarm")]
-    [SerializeField] private RectTransform _stageAlarmRect;
     [SerializeField] private TextMeshProUGUI _stageAlarmTMP;
     
     [Header("Card")]
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private RectTransform _centerRect;
+
+    [Header("Shuriken")] 
+    [SerializeField] private Button _suggestShurikenButton;
+
+    [SerializeField] private Image _loseHPEffect;
     
     private Dictionary<string, PlayerPlayArea> _playerPlayAreas = new Dictionary<string, PlayerPlayArea>();
     
-    void OnEnable()
+    private float _curveHeight = 80f; // 포물선 높이
+    private float _curvature = 1.2f;
+    private float _spacing = 50f;            // 카드 간 간격
+    private float _curveAngle = 5f;    // 카드가 펼쳐지는 각도
+
+    void Awake()
     {
+        _suggestShurikenButton.onClick.AddListener(OnClickSuggestShurikenButton);
+        GameManager.Instance.multiplayController.EventSuggestShurikenUse += OnSuggestShuriken;
+        GameManager.Instance.multiplayController.EventUseShuriken += OnUseShuriken;
     }
     
     public UniTask Show()
@@ -52,6 +66,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
     public UniTask Hide()
     {
         gameObject.SetActive(false);
+        
         return UniTask.CompletedTask;
     }
 
@@ -62,14 +77,11 @@ public class GamePanelController : MonoBehaviour, IGameUI
         SetPlayerRects();
 
         _stageTMP.text = gameInfo.currentStage.ToString();
+        _stageAlarmTMP.text = $"스테이지 {gameInfo.currentStage}";
         _remainingLifeTMP.text = gameInfo.remainingLife.ToString();
         _remainingShurikensTMP.text = gameInfo.remainingShurikens.ToString();
 
-        // Dotween으로 stage 1 띄우기
-        _stageAlarmRect.DOAnchorPos(new Vector2(0, 100), 0.5f).OnComplete(() =>
-        {
-            GameManager.Instance.inGameController.StartStage();
-        });
+        GameManager.Instance.inGameController.StartStage();
     }
 
     public void StartCardUI(int[] cardsNum) // UI상으로 카드 나눠주기
@@ -92,9 +104,14 @@ public class GamePanelController : MonoBehaviour, IGameUI
                     Card card = Instantiate(_cardPrefab, _playerPlayAreas[playerId].cardContainer).GetComponent<Card>();
                     _playerPlayAreas[playerId].remainingCards.Add(card);
                 }
+                ArrangeCard(playerId);
             }
         }
-        _bottomPlayerPlayArea.remainingCards[0].ActivateDrag();
+        
+        Sequence seq = DOTween.Sequence();
+        seq.Append(_stageAlarmTMP.DOFade(1f, 1f));  // Fade In
+        seq.Append(_stageAlarmTMP.DOFade(0f, 1f));  // Fade Out
+        seq.OnComplete(() => { _bottomPlayerPlayArea.remainingCards[0].ActivateDrag(); });
     }
 
     private void SetPlayerRects()
@@ -186,15 +203,25 @@ public class GamePanelController : MonoBehaviour, IGameUI
 
     public void UpdateGameInfo(int currentStage = -1, int remainingLife = -1, int remainingShurikens = -1)
     {
-        if(currentStage != -1)
+        if (currentStage != -1)
+        {
             _stageTMP.text = currentStage.ToString();
+            _stageAlarmTMP.text = $"스테이지 {currentStage}";
+        }
         if(remainingLife != -1)
             _remainingLifeTMP.text = remainingLife.ToString();
         if(remainingShurikens != -1)
            _remainingShurikensTMP.text = remainingShurikens.ToString();
     }
 
-    public void ThrowAwayCards(string playerId, int[] cardNums)
+    public void LoseHPEffect()
+    {
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(_loseHPEffect.DOFade(0.5f, 0.1f));
+        sequence.Append(_loseHPEffect.DOFade(0f, 0.1f));
+    }
+
+    public void DiscardCards(string playerId, int[] cardNums)
     {
         if (GameManager.Instance.userInfo.userId == playerId) // local 클라이언트는 정확히 숫자에 맞는 카드 제거하기
         {
@@ -202,6 +229,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
             {
                 Card card = PopLowestCard(_bottomPlayerPlayArea.remainingCards);
                 card.DeactivateDrag();
+                card.transform.rotation = Quaternion.identity;
                 card.transform.SetParent(_bottomPlayerPlayArea.disposedCardContainer);
             }
             if(_bottomPlayerPlayArea.remainingCards.Count > 0) _bottomPlayerPlayArea.remainingCards[0].ActivateDrag();
@@ -214,6 +242,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
             foreach (int cardNum in cardNums)
             {
                 Card card = PopLowestCard(playerPlayArea.remainingCards);
+                card.transform.rotation = Quaternion.identity;
                 card.transform.SetParent(playerPlayArea.disposedCardContainer);
                 card.SetNumber(cardNum);
             }
@@ -247,5 +276,100 @@ public class GamePanelController : MonoBehaviour, IGameUI
     public void GameOver()
     {
         
+    }
+
+    private void OnClickSuggestShurikenButton()
+    {
+        GameManager.Instance.multiplayController.SendSuggestShuriken(GameManager.Instance.userInfo.userId);
+    }
+
+    private void OnSuggestShuriken(string firstSuggetId)
+    {
+        ShurikenVoteUIController shurikenVoteUIController = UIManager.Instance.GetUI<ShurikenVoteUIController>(UI_TYPE.ShurikenVoteUI);
+        shurikenVoteUIController.Show();
+        shurikenVoteUIController.Initialize(firstSuggetId);
+    }
+
+    private void OnUseShuriken(ShurikenUseInfo shurikenUseInfo)
+    {
+        _remainingShurikensTMP.text = shurikenUseInfo.remainingShurikens.ToString();
+
+        foreach (string playerId in shurikenUseInfo.lowestNumbers.Keys)
+        {
+            if (shurikenUseInfo.lowestNumbers[playerId] < 1) return;
+            
+            int[] discardedNums = new int[1]{shurikenUseInfo.lowestNumbers[playerId]};
+            DiscardCards(playerId, discardedNums);
+        }
+    }
+
+    private void ArrangeCard(string playerId)
+    {
+        // 실제 카드를 들 때 처럼 포물선 형태로 카드를 배열
+        int count = _playerPlayAreas[playerId].remainingCards.Count;
+        float centerIndex = (count - 1) / 2f;
+
+        switch (_playerPlayAreas[playerId].direction)
+        {
+            case 12:
+                for (int i = 0; i < count; i++)
+                {
+                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+
+                    // 포물선 형태로 카드 배열
+                    float x = (i - centerIndex) * _spacing;
+                    float y = Mathf.Pow(i - centerIndex, 2) * _curvature - _curveHeight;
+                    card.anchoredPosition = new Vector2(x, y);
+
+                    // 카드에 회전 더하기
+                    float angle = (i - centerIndex) * _curveAngle;
+                    card.localRotation = Quaternion.Euler(0, 0, angle);
+                }
+                break;
+            case 9:
+                for (int i = 0; i < count; i++)
+                {
+                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+    
+                    float y = (i - centerIndex) * _spacing;
+                    float x = Mathf.Pow(i - centerIndex, 2) * _curvature + _curveHeight;
+                    card.anchoredPosition = new Vector2(x, y);
+    
+                    float angle = (i - centerIndex) * _curveAngle - 90f;
+                    card.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                }
+                break;
+            case 3:
+                for (int i = 0; i < count; i++)
+                {
+                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+    
+                    float y = (i - centerIndex) * _spacing;
+                    float x = Mathf.Pow(i - centerIndex, 2) * _curvature - _curveHeight;
+                    card.anchoredPosition = new Vector2(x, y);
+    
+                    float angle = (i - centerIndex) * -_curveAngle + 90f;
+                    card.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                }
+                break;
+        }
+    }
+
+    private void OnDisable()
+    {
+        // List 및 dictionary 초기화
+        foreach (Transform child in _centerRect)
+            Destroy(child.gameObject);
+        
+        foreach (PlayerPlayArea playerPlayArea in _playerPlayAreas.Values)
+        {
+            foreach(Transform child in playerPlayArea.disposedCardContainer)
+                Destroy(child.gameObject);
+            foreach (Card card in playerPlayArea.remainingCards)
+                Destroy(card.gameObject);
+            playerPlayArea.remainingCards.Clear();
+        }
+
+        _playerPlayAreas.Clear();
     }
 }

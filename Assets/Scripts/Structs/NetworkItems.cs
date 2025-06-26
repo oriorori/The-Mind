@@ -67,7 +67,7 @@ public class WrongCardPlayInfo
 {
     public int playedCardNumber;
     public string playedPlayer;
-    public int ramainingLife;
+    public int remainingLife;
     public Dictionary<string, int[]> lowerNumbers;
 }
 
@@ -82,4 +82,10 @@ public class CardMoveInfo
     public string playerId;
     public float ratioToCenter;
     public float ratioToCenterVertical;
+}
+
+public class ShurikenUseInfo
+{
+    public int remainingShurikens;
+    public Dictionary<string, int> lowestNumbers;
 }

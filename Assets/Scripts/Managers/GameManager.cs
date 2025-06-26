@@ -20,11 +20,6 @@ public class GameManager : SingletonDontDestroy<GameManager>
         // multiplayController.Initialize();
     }
 
-    public void SubscribeEvent(EventType eventType, Action<SocketIOResponse> action)
-    {
-        multiplayController.events[eventType] += action;
-    }
-
     public void InitCurrentPlayingRoom(Room room)
     {
         currentPlayingRoom = room;
@@ -37,5 +32,10 @@ public class GameManager : SingletonDontDestroy<GameManager>
     public void StartGame(GameInfo gameInfo)
     {
         inGameController.InitGame(gameInfo);
+    }
+
+    void OnDestroy()
+    {
+        multiplayController.DisconnectSocket();
     }
 }

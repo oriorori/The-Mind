@@ -9,7 +9,7 @@ public class PopupUIController : MonoBehaviour, IGameUI
     [SerializeField] private TextMeshProUGUI popupText;
     
     [SerializeField] private Button closeButton;
-    private Action onClosePopupUI;
+    private Action EventClosingPopupUI;
 
     void Start()
     {
@@ -23,7 +23,7 @@ public class PopupUIController : MonoBehaviour, IGameUI
 
     public void SetCloseAction(Action closeAction)
     {
-        onClosePopupUI = closeAction;
+        EventClosingPopupUI = closeAction;
     }
     
     public UniTask Show()
@@ -40,8 +40,9 @@ public class PopupUIController : MonoBehaviour, IGameUI
 
     private void OnClickClose()
     {
-        onClosePopupUI?.Invoke();
+        EventClosingPopupUI?.Invoke();
+        popupText.text = "";
         Hide();
-        onClosePopupUI = null;
+        EventClosingPopupUI = null;
     }
 }

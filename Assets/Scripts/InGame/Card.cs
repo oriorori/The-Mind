@@ -14,7 +14,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
     private int _number;
 
-    private float _positionUpdateInterval = 0.2f;
+    private float _positionUpdateInterval = 0.03f;
     private float _elapsedTime = 0f;
     
     private bool IsDraggable { get; set; }
@@ -76,9 +76,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
         
         _elapsedTime = 0f;
         _canvasGroup.blocksRaycasts = true;
-
-        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(_canvas.worldCamera, _rt.position);
-
+        
         Rect rect = ToRect(_rt);
         Rect rectCenter = ToRect(_centerRect);
         
@@ -88,6 +86,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
             GameManager.Instance.multiplayController.SendPlayCard(_number);
             
             transform.SetParent(_centerRect);
+            transform.rotation = Quaternion.identity;
             _rt.anchorMin = new Vector2(0.5f, 0.5f);
             _rt.anchorMax = new Vector2(0.5f, 0.5f);
             _rt.anchoredPosition = Vector2.zero;

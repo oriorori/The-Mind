@@ -8,32 +8,43 @@ using UnityEngine.UI;
 public class WaitingRoomPanelController : MonoBehaviour, IGameUI
 {
     [SerializeField] private Button _startGameButton;
+    [SerializeField] private Button _leaveRoomButton;
     [SerializeField] private RectTransform _playerListRect;
 
     [SerializeField] private GameObject _playerObject;
 
-    public void Initialize()
+    private Dictionary<string, PlayerWaitingStatusController> _playerStatusDict;
+
+    void Awake()
+    {
+        _startGameButton.onClick.AddListener(OnClickStartGameButton);
+        _leaveRoomButton.onClick.AddListener(OnClickLeaveRoomButton);
+        _playerStatusDict = new Dictionary<string, PlayerWaitingStatusController>();
+        GameManager.Instance.multiplayController.EventStartGame += OnGameStarted;
+        GameManager.Instance.multiplayController.EventLeaveRoom += OnRoomLeft;
+        GameManager.Instance.multiplayController.EventBackToRoom += BackToRoom;
+    }
+    
+    public void GetIntoRoom(List<string> players)
     {
         // 처음 방에 들어갈 때 실행
         // http 통신에서 받은 playerList를 이용해 init
-        foreach (string playerName in GameManager.Instance.currentPlayingRoom.players)
+        foreach (string playerName in players)
         {
-            GameObject playerObject = Instantiate(_playerObject, _playerListRect);
-            TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
-            playerNameText.text = playerName;
+            AddWaitingPlayerStatus(playerName);
         }
+    }
 
-        _startGameButton.onClick.AddListener(OnClickStartGameButton);
-        GameManager.Instance.multiplayController.EventStartGame += ( (_) => { gameObject.SetActive(false); } );
+    private void BackToRoom(string playerName)
+    {
+        _playerStatusDict[playerName].ChangeStatus(WaitingStatus.waiting);
     }
 
     public void AddNewPlayer(string playerName)
     {
         // 나는 참가해있고 다른 누군가가 추가로 참가할 때 호출
         // multiplaycontroller의 joinroom에 구독해놓고 socket통신에서 joinRoomCli response가 오면 실행된다
-        GameObject playerObject = Instantiate(_playerObject, _playerListRect);
-        TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
-        playerNameText.text = playerName;
+        AddWaitingPlayerStatus(playerName);
     }
     
     public UniTask Show()
@@ -58,7 +69,56 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         }
         else
         {
-            GameManager.Instance.multiplayController.SendSuggestStartGame(GameManager.Instance.userInfo.userId);
+            GameManager.Instance.multiplayController.SendSuggestStartGame();
         }
+    }
+
+    private void OnClickLeaveRoomButton()
+    {
+        GameManager.Instance.multiplayController.SendLeaveRoom();
+    }
+    
+    
+
+    private void OnGameStarted(object _)
+    {
+        foreach (PlayerWaitingStatusController playerStatus in _playerStatusDict.Values)
+        {
+            playerStatus.ChangeStatus(WaitingStatus.playing);
+        }
+        Hide();
+    }
+
+    private void OnRoomLeft(string playerId)
+    {
+        if (playerId == GameManager.Instance.userInfo.userId) // 내가 나간 경우
+        {
+            UIManager.Instance.GetUI<MainMenuPanelController>(UI_TYPE.MainMenu).Show();
+            GameManager.Instance.InitCurrentPlayingRoom(null);
+            Destroy(gameObject);
+        }
+        else // 방의 다른 사람이 나간 경우
+        {
+            Destroy(_playerStatusDict[playerId].gameObject);
+            _playerStatusDict.Remove(playerId);
+            GameManager.Instance.currentPlayingRoom.players.Remove(playerId);
+        }
+    }
+
+    private void AddWaitingPlayerStatus(string playerName)
+    {
+        GameObject playerObject = Instantiate(_playerObject, _playerListRect);
+        PlayerWaitingStatusController playerStatusController = playerObject.GetComponent<PlayerWaitingStatusController>();
+        playerStatusController.ChangeStatus(WaitingStatus.waiting);
+        _playerStatusDict[playerName] = playerStatusController;
+        TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
+        playerNameText.text = playerName;
+    }
+
+    void OnDestroy()
+    {
+        GameManager.Instance.multiplayController.EventStartGame -= OnGameStarted;
+        GameManager.Instance.multiplayController.EventLeaveRoom -= OnRoomLeft;
+        GameManager.Instance.multiplayController.EventBackToRoom -= BackToRoom;
     }
 }

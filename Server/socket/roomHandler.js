@@ -1,6 +1,6 @@
 const stageData = require('../config/stageConfig');
 const { createRoomInfo } = require('../utils/inGameUtil');
-const { destroyRoom } = require('../controllers/roomController');
+const { destroyRoom, leaveRoom } = require('../controllers/roomController');
 
 // 공통된 룸 안에 있는 소켓들이 공유해야하는 정보이므로 바깥에서 정의
 const roomInfos = {};
@@ -19,6 +19,7 @@ function setupRoomHandlers(io, socket){
             roomInfos[roomId] = createRoomInfo(roomSize); // 방 정보 초기화
         }
         roomInfos[roomId].players.push(playerId);
+        roomInfos[roomId].inWaitingRoom.push(playerId);
 
         console.log(`현재 방 #${roomId}의 플레이어: ${roomInfos[roomId].players}`);
         
@@ -30,6 +31,36 @@ function setupRoomHandlers(io, socket){
         socket.data.playerId = playerId; // socket에 유저 데이터 저장
         socket.data.roomId = roomId; // socket에 방 데이터 저장
     });
+
+    socket.on('backToRoom',()=>{
+        const roomId = socket.data.roomId;
+        const playerId = socket.data.playerId;
+
+        if(!roomInfos[roomId]) {
+            console.error(`방 #${roomId}이 존재하지 않습니다.`);
+            return;
+        }
+
+        if(!roomInfos[roomId]) {
+            console.error(`방 #${roomId}이 존재하지 않습니다.`);
+            socket.emit('errorCli', '방이 존재하지 않습니다.');
+            return;
+        }
+
+        // 게임 상태 초기화
+        roomInfos[roomId].playing = false;
+        roomInfos[roomId].waiting = false;
+        roomInfos[roomId].currentStage = 1;
+        roomInfos[roomId].remainingLife = stageData.startingLife[roomInfos[roomId].roomSize];
+        roomInfos[roomId].remainingShurikens = 1;
+        roomInfos[roomId].cards = {}; // 카드 초기화
+        roomInfos[roomId].shuffling = false; // 셔플 상태 초기화
+
+
+        roomInfos[roomId].inWaitingRoom.push(playerId); // 대기실에 다시 추가
+        io.to(roomId).emit('backToRoomCli', playerId);
+        console.log(`사용자 ${playerId}님이 방 #${roomId}에 다시 입장했어요`);
+    })
 
     socket.on('suggestStartGame', () => { // 누군가 startgame 버튼 눌렀을 때 로직
 
@@ -71,6 +102,7 @@ function setupRoomHandlers(io, socket){
             console.log(`방 #${roomId}에서 게임 시작!`);
             roomInfos[roomId].waiting = false;
             roomInfos[roomId].playing = true; // 게임 시작 상태로 변경
+            roomInfos[roomId].inWaitingRoom = []; // 대기실 초기화
 
             roomInfos[roomId].currentStage = 1;
             roomInfos[roomId].remainingLife = stageData.startingLife[roomSize];
@@ -92,46 +124,52 @@ function setupRoomHandlers(io, socket){
     socket.on('refuseGame', () => {
         const roomId = socket.data.roomId;
         roomInfos[roomId].gameStartVotes.clear();
-        socket.to(roomId).emit('refuseGameCli');
+        io.to(roomId).emit('refuseGameCli');
     })
 
     socket.on('leaveRoom', () => {
         const roomId = socket.data.roomId;
         const playerId = socket.data.playerId;
+        io.to(roomId).emit('leaveRoomCli', playerId);
+        roomInfos[roomId].players = roomInfos[roomId].players.filter(player => player !== playerId);
+        roomInfos[roomId].inWaitingRoom = roomInfos[roomId].inWaitingRoom.filter(player => player !== playerId);
         socket.leave(roomId);
-        socket.to(roomId).emit('leaveRoomCli', playerId);
+        leaveRoom(roomId, playerId); // 방에서 플레이어 제거
+        console.log(`사용자 ${playerId}님이 방 #${roomId}에서 나갔어요`);
+
+        if(roomInfos[roomId].players.length === 0) {
+            destroyRoom(roomId); // 방에 남은 플레이어가 없으면 방 파괴
+            delete roomInfos[roomId]; // 방 정보 삭제
+            console.log(`방 #${roomId}이 파괴되었습니다.`);
+        }
 
         socket.data.roomId = '';
         socket.data.playerId = '';
     });
+}
 
-    socket.on('DestroyRoom', async () =>{
-        const roomId = socket.data.roomId;
+function removePlayerFromRoom(io, roomId, playerId) {
+    if (!roomInfos[roomId]) {
+        console.error(`방 #${roomId}이 존재하지 않습니다.`);
+        return;
+    }
 
-        if(roomInfos[roomId]) {
-            // 클라이언트에게 request 전송
-            io.to(roomId).emit('destroyRoomCli');
+    roomInfos[roomId].players = roomInfos[roomId].players.filter(player => player !== playerId);
+    roomInfos[roomId].inWaitingRoom = roomInfos[roomId].inWaitingRoom.filter(player => player !== playerId);
 
-            // 연결 해제
-            const socketsInRoom = await io.in(roomId).fetchSockets();
-            socketsInRoom.forEach(socket => {
-                socket.leave(roomId); // 방에 연결된 모든 소켓을 방에서 제거
-                socket.data.roomId = null;
-            });
-
-            // 데이터 삭제
-            destroyRoom(roomId); // roomController의 rooms 객체에서 방 삭제
-            delete roomInfos[roomId]; // 방 정보 삭제
-
-            console.log(`방 #${roomId}이 파괴되었습니다.`);
-        } 
-        else {
-            console.error(`방 #${roomId}이 존재하지 않습니다.`);
-        }
-    })
+    if (roomInfos[roomId].players.length === 0) {
+        destroyRoom(roomId); // 방에 남은 플레이어가 없으면 방 파괴
+        delete roomInfos[roomId]; // 방 정보 삭제
+        console.log(`방 #${roomId}이 파괴되었습니다.`);
+    } else {
+        leaveRoom(roomId, playerId); // 방에서 플레이어 제거
+        io.to(roomId).emit('leaveRoomCli', playerId);
+        console.log(`사용자 ${playerId}님이 방 #${roomId}에서 나갔어요`);
+    }
 }
 
 module.exports = {
     setupRoomHandlers,
+    removePlayerFromRoom,
     roomInfos,
 };

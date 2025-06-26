@@ -61,6 +61,24 @@ async function joinRoom(req, res){
   }
 }
 
+async function leaveRoom(roomId, playerId){
+  try {
+    const room = rooms[roomId];
+    if (!room) {
+      console.error(`방 #${roomId}이 존재하지 않습니다.`);
+      return;
+    }
+
+    room.players = room.players.filter(player => player !== playerId);
+    room.playerCount -= 1;
+
+    console.log(`🔴 ${playerId}님이 방 #${roomId}에서 나갔어요`);
+
+  } catch (error) {
+    console.error('방 나가기 에러:', error);
+  }
+}
+
 async function destroyRoom(roomId) {
   try {
     if (!rooms[roomId]) {
@@ -77,5 +95,6 @@ async function destroyRoom(roomId) {
 module.exports = {
   createRoom,
   joinRoom,
+  leaveRoom,
   destroyRoom,
 };

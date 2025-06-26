@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -15,14 +17,20 @@ public class MultiplayController
 
     public Dictionary<EventType, Action<SocketIOResponse>> events;
     public event Action<string> EventJoinRoom;
+    public event Action<string> EventLeaveRoom;
     public event Action<GameInfo> EventStartGame;
-    public event Action<SocketIOResponse> EventStartStage;
     public event Action<int[]> EventCardReceive;
     public event Action<CardMoveInfo> EventCardMove;
     public event Action<WrongCardPlayInfo> EventWrongCardPlay;
     public event Action<RightCardPlayInfo> EventRightCardPlay;
     public event Action<GameInfo> EventStageClear;
     public event Action EventGameOver;
+    public event Action<string> EventBackToRoom;
+    public event Action<string> EventSuggestShurikenUse;
+    public event Action EventRefuseShuriken;
+    public event Action<ShurikenUseInfo> EventUseShuriken;
+    public event Action EventRefuseGame;
+    public event Action EventReadyGame;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -43,6 +51,7 @@ public class MultiplayController
             // 소켓통신에서 서버는 이벤트이름과 함께 데이터를 보낸다.
             // 이 dictionary의 key가 곧 이벤트 이름과 동일해야하며, value는 해당 이벤트를 받았을 때 실행할 Action인 것
             { "joinRoomCli", OnRoomJoined }, 
+            { "leaveRoomCli", OnRoomLeft },
             { "suggestStartGameCli", OnStartGameSuggested },
             { "readyGameCli", OnGameReadied },
             { "startGameCli", OnGameStarted },
@@ -51,7 +60,6 @@ public class MultiplayController
             { "playWrongCardCli", OnWrongCardPlayed },
             { "playRightCardCli", OnRightCardPlayed },
             { "suggestShurikenCli", OnShurikenSuggested },
-            { "agreeShurikenCli", OnShurikenAgreed },
             { "useShurikenCli", OnShurikenUsed },
             { "refuseShurikenCli", OnShurikenRefused},
             { "startStageCli", OnStageStarted},
@@ -59,6 +67,7 @@ public class MultiplayController
             { "gameOverCli", OnGameOvered},
             { "stageClearCli", OnStageCleared},
             { "gameClearCli", OnGameCleared},
+            { "backToRoomCli", OnBackToRoom }
         };
 
         // 소켓(서버)에서 메시지를 보내면 그에 맞는 Action을 실행하도록 이벤트를 연결
@@ -111,11 +120,17 @@ public class MultiplayController
     
     #region response처리
 
-    private void OnRoomJoined(SocketIOResponse response) // 서버에 joingame을 보낼시 response로 joinroomcli가 오면 자동 실행
+    private void OnRoomJoined(SocketIOResponse response)
     {
         string playerName = response.GetValue<string>();
         GameManager.Instance.AddNewPlayer(playerName);
         EventJoinRoom?.Invoke(playerName);
+    }
+
+    private void OnRoomLeft(SocketIOResponse response)
+    {
+        string playerId = response.GetValue<string>();
+        EventLeaveRoom?.Invoke(playerId);
     }
 
     private void OnGameStarted(SocketIOResponse response)
@@ -143,19 +158,19 @@ public class MultiplayController
     {
         string firstSuggestId = response.GetValue<string>();
         WaitingReadyUIController waitingReadyUI = UIManager.Instance.GetUI<WaitingReadyUIController>(UI_TYPE.WaitingReady);
-        
+        waitingReadyUI.Show();
         waitingReadyUI.Initialize(GameManager.Instance.userInfo.userId == firstSuggestId);
 
     }
 
     private void OnGameReadied(SocketIOResponse response)
-    {  
-        // WaitingReadyUI에서 ready, refuse 제거
+    {
+        EventReadyGame?.Invoke();
     }
 
     private void OnGameRefused(SocketIOResponse response)
     {
-        // waitingReadyUIController 비활성화
+        EventRefuseGame?.Invoke();
     }
 
     private void OnStageStarted(SocketIOResponse response)
@@ -189,22 +204,21 @@ public class MultiplayController
 
     private void OnShurikenSuggested(SocketIOResponse response)
     {
-        
-    }
-
-    private void OnShurikenAgreed(SocketIOResponse response)
-    {
-        
+        string firstSuggestedId = response.GetValue<string>();
+        EventSuggestShurikenUse?.Invoke(firstSuggestedId);
     }
 
     private void OnShurikenUsed(SocketIOResponse response)
     {
-        
+        string shurikenInfoString = response.ToString();
+        ShurikenUseInfo[] shurikenInfos = JsonConvert.DeserializeObject<ShurikenUseInfo[]>(shurikenInfoString);
+        ShurikenUseInfo shurikenUseInfo = shurikenInfos[0];
+        EventUseShuriken?.Invoke(shurikenUseInfo);
     }
 
     private void OnShurikenRefused(SocketIOResponse response)
     {
-        
+        EventRefuseShuriken?.Invoke();
     }
 
     private void OnCardsReceived(SocketIOResponse response)
@@ -215,7 +229,7 @@ public class MultiplayController
     
     private void OnGameCleared(SocketIOResponse response)
     {
-        
+        UIManager.Instance.GetUI<GameClearPopupUIController>(UI_TYPE.GameClearPopup).Show();
     }
 
     private void OnStageCleared(SocketIOResponse response)
@@ -233,6 +247,12 @@ public class MultiplayController
         EventGameOver?.Invoke();
     }
 
+    private void OnBackToRoom(SocketIOResponse response)
+    {
+        string playerName = response.GetValue<string>();
+        EventBackToRoom?.Invoke(playerName);
+    }
+
     #endregion
     
     #region 소켓으로 송신
@@ -245,8 +265,13 @@ public class MultiplayController
         };
         _socket.Emit("joinGame", data);
     }
+
+    public void SendLeaveRoom()
+    {
+        _socket.Emit("leaveRoom");
+    }
     
-    public void SendSuggestStartGame(string playerId)
+    public void SendSuggestStartGame()
     {
         _socket.Emit("suggestStartGame");
     }
@@ -276,14 +301,33 @@ public class MultiplayController
         _socket.Emit("cardMove", ratioToCenter, ratioToCenterVertical);
     }
 
-    public void SendRestartGame()
+    public void SendSuggestShuriken(string playerId)
     {
-        _socket.Emit("restartGame");
+        _socket.Emit("suggestShuriken", playerId);
+    }
+    public void SendAgreeShuriken(string playerId)
+    {
+        _socket.Emit("agreeShuriken", playerId);
     }
 
-    public void SendDestroyRoom()
+    public void SendRefuseShuriken(string playerId)
     {
-        _socket.Emit("destroyRoom");
+        _socket.Emit("refuseShuriken", playerId);
+    }
+
+    public void SendBackToRoom()
+    {
+        _socket.Emit("backToRoom");
     }
     #endregion
+
+    public async void DisconnectSocket()
+    {
+        if (_socket != null && _socket.Connected)
+        {
+            Debug.Log("🧹 GameManager에서 DisconnectAsync 호출 중...");
+            await _socket.DisconnectAsync();
+            Debug.Log("✅ 서버와 연결 정상 해제 완료");
+        }
+    }
 }
