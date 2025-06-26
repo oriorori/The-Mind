@@ -29,11 +29,11 @@ public class MainMenuPanelController : MonoBehaviour, IGameUI
 
     private void OnClickCreateRoom()
     {
-        UIManager.Instance.ShowUI<CreateRoomPanelController>(UI_TYPE.CreateRoom, () => Hide());
+        UIManager.Instance.ShowUI<CreateRoomPanelController>(UI_TYPE.CreateRoom, () => Hide()).Forget();
     }
 
     private void OnClickJoinRoom()
     {
-        UIManager.Instance.ShowUI<JoinRoomPanelController>(UI_TYPE.JoinRoom, () => Hide());
+        UIManager.Instance.ShowUI<JoinRoomPanelController>(UI_TYPE.JoinRoom, () => Hide()).Forget();
     }
 }

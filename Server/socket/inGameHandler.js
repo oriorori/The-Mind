@@ -63,6 +63,13 @@ module.exports = (io, socket) => {
         });
     })
 
+    socket.on('rollbackCardMovement', () => {
+        const roomId = socket.data.roomId;
+        const playerId = socket.data.playerId;
+
+        socket.to(roomId).emit('rollbackCardMovementCli', playerId);
+    })
+
     // when someone play card
     socket.on('playCard', (cardNumber) => {
         const roomId = socket.data.roomId;

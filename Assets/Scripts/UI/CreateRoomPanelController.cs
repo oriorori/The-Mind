@@ -72,7 +72,7 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
 
     private void OnClickBack()
     {
-        UIManager.Instance.ShowUI<MainMenuPanelController>(UI_TYPE.MainMenu, () => Hide());
+        UIManager.Instance.ShowUI<MainMenuPanelController>(UI_TYPE.MainMenu, () => Hide()).Forget();
     }
 
     private async void OnSuccessCreateRoom(Room roomData)
@@ -82,6 +82,6 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         
         waitingRoomPanelController.GetIntoRoom(roomData.players);
         GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, _roomNumber, _playerNum);
-        Hide();
+        Hide().Forget();
     }
 }

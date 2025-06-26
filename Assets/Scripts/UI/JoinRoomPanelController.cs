@@ -45,7 +45,7 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
     
     private void OnClickBack()
     {
-        UIManager.Instance.ShowUI<MainMenuPanelController>(UI_TYPE.MainMenu, () => Hide());
+        UIManager.Instance.ShowUI<MainMenuPanelController>(UI_TYPE.MainMenu, () => Hide()).Forget();
     }
 
     private async void OnSuccessJoinRoom(Room roomData)

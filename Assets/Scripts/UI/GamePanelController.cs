@@ -55,6 +55,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
         _suggestShurikenButton.onClick.AddListener(OnClickSuggestShurikenButton);
         GameManager.Instance.multiplayController.EventSuggestShurikenUse += OnSuggestShuriken;
         GameManager.Instance.multiplayController.EventUseShuriken += OnUseShuriken;
+        GameManager.Instance.multiplayController.EventRollbackCard += RollBackCardMovement;
     }
     
     public UniTask Show()
@@ -156,7 +157,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
     {
         string playerIdMoved = cardMoveInfo.playerId;
         if (!_playerPlayAreas.TryGetValue(playerIdMoved, out var playArea)) return;
-
+        
         RectTransform cardRectTransform = _playerPlayAreas[playerIdMoved].remainingCards[0].GetComponent<RectTransform>();
 
         Vector2 newPos = new Vector2();
@@ -194,6 +195,7 @@ public class GamePanelController : MonoBehaviour, IGameUI
             Card card = PopLowestCard(_playerPlayAreas[playerId].remainingCards);
             RectTransform playedCardTransform = card.GetComponent<RectTransform>();
             playedCardTransform.SetParent(_centerRect);
+            playedCardTransform.rotation = Quaternion.identity;
             playedCardTransform.anchorMin = new Vector2(0.5f, 0.5f);
             playedCardTransform.anchorMax = new Vector2(0.5f, 0.5f);
             playedCardTransform.anchoredPosition = Vector2.zero;
@@ -314,45 +316,58 @@ public class GamePanelController : MonoBehaviour, IGameUI
             case 12:
                 for (int i = 0; i < count; i++)
                 {
-                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+                    RectTransform cardRectTransform = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
 
                     // 포물선 형태로 카드 배열
                     float x = (i - centerIndex) * _spacing;
                     float y = Mathf.Pow(i - centerIndex, 2) * _curvature - _curveHeight;
-                    card.anchoredPosition = new Vector2(x, y);
+                    cardRectTransform.anchoredPosition = new Vector2(x, y);
 
                     // 카드에 회전 더하기
                     float angle = (i - centerIndex) * _curveAngle;
-                    card.localRotation = Quaternion.Euler(0, 0, angle);
+                    cardRectTransform.localRotation = Quaternion.Euler(0, 0, angle);
+                    
+                    _playerPlayAreas[playerId].remainingCards[i].movingStartPosition = cardRectTransform.anchoredPosition;
                 }
                 break;
             case 9:
                 for (int i = 0; i < count; i++)
                 {
-                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+                    RectTransform cardRectTransform = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
     
                     float y = (i - centerIndex) * _spacing;
                     float x = Mathf.Pow(i - centerIndex, 2) * _curvature + _curveHeight;
-                    card.anchoredPosition = new Vector2(x, y);
+                    cardRectTransform.anchoredPosition = new Vector2(x, y);
     
                     float angle = (i - centerIndex) * _curveAngle - 90f;
-                    card.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                    cardRectTransform.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                    
+                    _playerPlayAreas[playerId].remainingCards[i].movingStartPosition = cardRectTransform.anchoredPosition;
                 }
                 break;
             case 3:
                 for (int i = 0; i < count; i++)
                 {
-                    RectTransform card = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
+                    RectTransform cardRectTransform = _playerPlayAreas[playerId].remainingCards[i].GetComponent<RectTransform>();
     
                     float y = (i - centerIndex) * _spacing;
                     float x = Mathf.Pow(i - centerIndex, 2) * _curvature - _curveHeight;
-                    card.anchoredPosition = new Vector2(x, y);
+                    cardRectTransform.anchoredPosition = new Vector2(x, y);
     
                     float angle = (i - centerIndex) * -_curveAngle + 90f;
-                    card.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                    cardRectTransform.transform.localRotation = Quaternion.Euler(0, 0, angle);
+                    
+                    _playerPlayAreas[playerId].remainingCards[i].movingStartPosition = cardRectTransform.anchoredPosition;
                 }
                 break;
         }
+    }
+
+    private void RollBackCardMovement(string playerId)
+    {
+        Card targetCard = _playerPlayAreas[playerId].remainingCards[0];
+        RectTransform cardRectTransform = targetCard.GetComponent<RectTransform>();
+        cardRectTransform.anchoredPosition = targetCard.movingStartPosition;
     }
 
     private void OnDisable()

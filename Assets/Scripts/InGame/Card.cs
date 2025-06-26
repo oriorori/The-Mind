@@ -18,6 +18,8 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
     private float _elapsedTime = 0f;
     
     private bool IsDraggable { get; set; }
+
+    [HideInInspector] public Vector2 movingStartPosition;
     
     private Vector2 _dragStartPosition;
     
@@ -97,7 +99,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
         
         // 카드를 중앙에 놓지 않으면 원래자리로 복귀
         _rt.anchoredPosition = _dragStartPosition;
-        SendCardMovement();
+        GameManager.Instance.multiplayController.SendRollbackCardMovement();
     }
 
     private Rect ToRect(RectTransform rt)

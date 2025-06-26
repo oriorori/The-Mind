@@ -31,6 +31,7 @@ public class MultiplayController
     public event Action<ShurikenUseInfo> EventUseShuriken;
     public event Action EventRefuseGame;
     public event Action EventReadyGame;
+    public event Action<string> EventRollbackCard;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -67,7 +68,8 @@ public class MultiplayController
             { "gameOverCli", OnGameOvered},
             { "stageClearCli", OnStageCleared},
             { "gameClearCli", OnGameCleared},
-            { "backToRoomCli", OnBackToRoom }
+            { "backToRoomCli", OnBackToRoom },
+            { "rollbackCardMovementCli", OnRollbackCardMovement}
         };
 
         // 소켓(서버)에서 메시지를 보내면 그에 맞는 Action을 실행하도록 이벤트를 연결
@@ -253,6 +255,12 @@ public class MultiplayController
         EventBackToRoom?.Invoke(playerName);
     }
 
+    private void OnRollbackCardMovement(SocketIOResponse response)
+    {
+        string playerId = response.GetValue<string>();
+        EventRollbackCard?.Invoke(playerId);
+    }
+
     #endregion
     
     #region 소켓으로 송신
@@ -318,6 +326,11 @@ public class MultiplayController
     public void SendBackToRoom()
     {
         _socket.Emit("backToRoom");
+    }
+
+    public void SendRollbackCardMovement()
+    {
+        _socket.Emit("rollbackCardMovement");
     }
     #endregion
 
