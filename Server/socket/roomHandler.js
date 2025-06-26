@@ -1,6 +1,6 @@
 const stageData = require('../config/stageConfig');
 const { createRoomInfo } = require('../utils/inGameUtil');
-const { destroyRoom } = require('../controllers/roomController');
+const { destroyRoom, leaveRoom } = require('../controllers/roomController');
 
 // 공통된 룸 안에 있는 소켓들이 공유해야하는 정보이므로 바깥에서 정의
 const roomInfos = {};
@@ -124,7 +124,7 @@ function setupRoomHandlers(io, socket){
     socket.on('refuseGame', () => {
         const roomId = socket.data.roomId;
         roomInfos[roomId].gameStartVotes.clear();
-        socket.to(roomId).emit('refuseGameCli');
+        io.to(roomId).emit('refuseGameCli');
     })
 
     socket.on('leaveRoom', () => {
@@ -134,6 +134,7 @@ function setupRoomHandlers(io, socket){
         roomInfos[roomId].players = roomInfos[roomId].players.filter(player => player !== playerId);
         roomInfos[roomId].inWaitingRoom = roomInfos[roomId].inWaitingRoom.filter(player => player !== playerId);
         socket.leave(roomId);
+        leaveRoom(roomId, playerId); // 방에서 플레이어 제거
         console.log(`사용자 ${playerId}님이 방 #${roomId}에서 나갔어요`);
 
         if(roomInfos[roomId].players.length === 0) {
@@ -161,6 +162,7 @@ function removePlayerFromRoom(io, roomId, playerId) {
         delete roomInfos[roomId]; // 방 정보 삭제
         console.log(`방 #${roomId}이 파괴되었습니다.`);
     } else {
+        leaveRoom(roomId, playerId); // 방에서 플레이어 제거
         io.to(roomId).emit('leaveRoomCli', playerId);
         console.log(`사용자 ${playerId}님이 방 #${roomId}에서 나갔어요`);
     }

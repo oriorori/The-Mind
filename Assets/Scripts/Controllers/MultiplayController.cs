@@ -19,7 +19,6 @@ public class MultiplayController
     public event Action<string> EventJoinRoom;
     public event Action<string> EventLeaveRoom;
     public event Action<GameInfo> EventStartGame;
-    public event Action<SocketIOResponse> EventStartStage;
     public event Action<int[]> EventCardReceive;
     public event Action<CardMoveInfo> EventCardMove;
     public event Action<WrongCardPlayInfo> EventWrongCardPlay;
@@ -30,6 +29,8 @@ public class MultiplayController
     public event Action<string> EventSuggestShurikenUse;
     public event Action EventRefuseShuriken;
     public event Action<ShurikenUseInfo> EventUseShuriken;
+    public event Action EventRefuseGame;
+    public event Action EventReadyGame;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -163,13 +164,13 @@ public class MultiplayController
     }
 
     private void OnGameReadied(SocketIOResponse response)
-    {  
-        // WaitingReadyUI에서 ready, refuse 제거
+    {
+        EventReadyGame?.Invoke();
     }
 
     private void OnGameRefused(SocketIOResponse response)
     {
-        // waitingReadyUIController 비활성화
+        EventRefuseGame?.Invoke();
     }
 
     private void OnStageStarted(SocketIOResponse response)
@@ -228,7 +229,7 @@ public class MultiplayController
     
     private void OnGameCleared(SocketIOResponse response)
     {
-        
+        UIManager.Instance.GetUI<GameClearPopupUIController>(UI_TYPE.GameClearPopup).Show();
     }
 
     private void OnStageCleared(SocketIOResponse response)

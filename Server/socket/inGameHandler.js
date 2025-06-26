@@ -150,7 +150,7 @@ module.exports = (io, socket) => {
     socket.on('refuseShuriken', () => {
         const roomId = socket.data.roomId;
         roomInfos[roomId].shurikenVotes.clear(); // 투표 초기화
-        socket.to(roomId).emit('refuseShurikenCli');
+        io.to(roomId).emit('refuseShurikenCli');
     });
 }
 

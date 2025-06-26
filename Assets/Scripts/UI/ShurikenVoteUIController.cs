@@ -14,6 +14,7 @@ public class ShurikenVoteUIController : MonoBehaviour, IGameUI
         _applyButton.onClick.AddListener(OnClickApplyButton);
         _refuseButton.onClick.AddListener(OnClickRefuseButton);
         GameManager.Instance.multiplayController.EventUseShuriken += _ => { Hide(); };
+        GameManager.Instance.multiplayController.EventRefuseShuriken += OnRefusedUsingShuriken;
     }
 
     public void Initialize(string firstSuggestedId)
@@ -40,8 +41,14 @@ public class ShurikenVoteUIController : MonoBehaviour, IGameUI
         _refuseButton.gameObject.SetActive(false);
     }
 
+    private void OnRefusedUsingShuriken()
+    {
+        Hide();
+    }
+
     void OnDisable()
     {
+        _text.text = "수리검을\n사용하시겠습니까?";
         _applyButton.gameObject.SetActive(true);
         _refuseButton.gameObject.SetActive(true);
     }

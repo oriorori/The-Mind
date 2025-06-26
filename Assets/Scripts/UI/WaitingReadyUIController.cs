@@ -26,6 +26,8 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
         _refuseButton.onClick.AddListener(OnClickRefuseButton);
 
         GameManager.Instance.multiplayController.EventStartGame += ( (_) => { gameObject.SetActive(false); } );
+        GameManager.Instance.multiplayController.EventReadyGame += OnReadiedGame;
+        GameManager.Instance.multiplayController.EventRefuseGame += OnRefusePlayingGame;
     }
     
     public void Initialize(bool pressedStartButton)
@@ -53,7 +55,6 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
     private void OnClickApplyButton()
     {
         GameManager.Instance.multiplayController.SendReadyGame();
-        ChangePlayerIconColorGreen();
         _applyButton.gameObject.SetActive(false);
         _refuseButton.gameObject.SetActive(false);
     }
@@ -68,9 +69,17 @@ public class WaitingReadyUIController : MonoBehaviour, IGameUI
         playerIconList[currentPlayerIndex++].GetComponent<Image>().color = Color.green;
     }
 
-    public void RefuseStartingGame()
+    private void OnReadiedGame()
     {
-        playerIconList[currentPlayerIndex++].GetComponent<Image>().color = Color.red;
+        ChangePlayerIconColorGreen();
+    }
+
+    private void OnRefusePlayingGame()
+    {
+        foreach (var icon in playerIconList)
+        {
+            icon.GetComponent<Image>().color = Color.white;
+        }
         gameObject.SetActive(false);
     }
 

@@ -20,7 +20,7 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         _startGameButton.onClick.AddListener(OnClickStartGameButton);
         _leaveRoomButton.onClick.AddListener(OnClickLeaveRoomButton);
         _playerStatusDict = new Dictionary<string, PlayerWaitingStatusController>();
-        GameManager.Instance.multiplayController.EventStartGame += (_) => { OnGameStarted(); };
+        GameManager.Instance.multiplayController.EventStartGame += OnGameStarted;
         GameManager.Instance.multiplayController.EventLeaveRoom += OnRoomLeft;
         GameManager.Instance.multiplayController.EventBackToRoom += BackToRoom;
     }
@@ -35,7 +35,7 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         }
     }
 
-    public void BackToRoom(string playerName)
+    private void BackToRoom(string playerName)
     {
         _playerStatusDict[playerName].ChangeStatus(WaitingStatus.waiting);
     }
@@ -75,10 +75,12 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
 
     private void OnClickLeaveRoomButton()
     {
-        
+        GameManager.Instance.multiplayController.SendLeaveRoom();
     }
+    
+    
 
-    private void OnGameStarted()
+    private void OnGameStarted(object _)
     {
         foreach (PlayerWaitingStatusController playerStatus in _playerStatusDict.Values)
         {
@@ -93,13 +95,13 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         {
             UIManager.Instance.GetUI<MainMenuPanelController>(UI_TYPE.MainMenu).Show();
             GameManager.Instance.InitCurrentPlayingRoom(null);
-            gameObject.SetActive(false);
+            Destroy(gameObject);
         }
         else // 방의 다른 사람이 나간 경우
         {
-            GameManager.Instance.currentPlayingRoom.players.Remove(playerId);
             Destroy(_playerStatusDict[playerId].gameObject);
             _playerStatusDict.Remove(playerId);
+            GameManager.Instance.currentPlayingRoom.players.Remove(playerId);
         }
     }
 
@@ -112,5 +114,11 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
         playerNameText.text = playerName;
     }
-    
+
+    void OnDestroy()
+    {
+        GameManager.Instance.multiplayController.EventStartGame -= OnGameStarted;
+        GameManager.Instance.multiplayController.EventLeaveRoom -= OnRoomLeft;
+        GameManager.Instance.multiplayController.EventBackToRoom -= BackToRoom;
+    }
 }

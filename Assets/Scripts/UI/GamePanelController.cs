@@ -32,7 +32,6 @@ public class GamePanelController : MonoBehaviour, IGameUI
     [SerializeField] private TextMeshProUGUI _remainingShurikensTMP;
     
     [Header("Stage Alarm")]
-    [SerializeField] private RectTransform _stageAlarmRect;
     [SerializeField] private TextMeshProUGUI _stageAlarmTMP;
     
     [Header("Card")]
@@ -41,6 +40,8 @@ public class GamePanelController : MonoBehaviour, IGameUI
 
     [Header("Shuriken")] 
     [SerializeField] private Button _suggestShurikenButton;
+
+    [SerializeField] private Image _loseHPEffect;
     
     private Dictionary<string, PlayerPlayArea> _playerPlayAreas = new Dictionary<string, PlayerPlayArea>();
     
@@ -76,14 +77,11 @@ public class GamePanelController : MonoBehaviour, IGameUI
         SetPlayerRects();
 
         _stageTMP.text = gameInfo.currentStage.ToString();
+        _stageAlarmTMP.text = $"스테이지 {gameInfo.currentStage}";
         _remainingLifeTMP.text = gameInfo.remainingLife.ToString();
         _remainingShurikensTMP.text = gameInfo.remainingShurikens.ToString();
 
-        // Dotween으로 stage 1 띄우기
-        _stageAlarmRect.DOAnchorPos(new Vector2(0, 100), 0.5f).OnComplete(() =>
-        {
-            GameManager.Instance.inGameController.StartStage();
-        });
+        GameManager.Instance.inGameController.StartStage();
     }
 
     public void StartCardUI(int[] cardsNum) // UI상으로 카드 나눠주기
@@ -109,7 +107,11 @@ public class GamePanelController : MonoBehaviour, IGameUI
                 ArrangeCard(playerId);
             }
         }
-        _bottomPlayerPlayArea.remainingCards[0].ActivateDrag();
+        
+        Sequence seq = DOTween.Sequence();
+        seq.Append(_stageAlarmTMP.DOFade(1f, 1f));  // Fade In
+        seq.Append(_stageAlarmTMP.DOFade(0f, 1f));  // Fade Out
+        seq.OnComplete(() => { _bottomPlayerPlayArea.remainingCards[0].ActivateDrag(); });
     }
 
     private void SetPlayerRects()
@@ -201,12 +203,22 @@ public class GamePanelController : MonoBehaviour, IGameUI
 
     public void UpdateGameInfo(int currentStage = -1, int remainingLife = -1, int remainingShurikens = -1)
     {
-        if(currentStage != -1)
+        if (currentStage != -1)
+        {
             _stageTMP.text = currentStage.ToString();
+            _stageAlarmTMP.text = $"스테이지 {currentStage}";
+        }
         if(remainingLife != -1)
             _remainingLifeTMP.text = remainingLife.ToString();
         if(remainingShurikens != -1)
            _remainingShurikensTMP.text = remainingShurikens.ToString();
+    }
+
+    public void LoseHPEffect()
+    {
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(_loseHPEffect.DOFade(0.5f, 0.1f));
+        sequence.Append(_loseHPEffect.DOFade(0f, 0.1f));
     }
 
     public void DiscardCards(string playerId, int[] cardNums)

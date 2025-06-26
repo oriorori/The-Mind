@@ -20,6 +20,7 @@ public enum UI_TYPE
     SignIn,
     GameOverPopup,
     ShurikenVoteUI,
+    GameClearPopup,
 }
 
 

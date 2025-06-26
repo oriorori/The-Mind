@@ -45,7 +45,7 @@ public class InGameController
                 _gamePanelController.DiscardCards(playerId, cardPlayInfo.lowerNumbers[playerId]);
             }
         }
-        
+        _gamePanelController.LoseHPEffect();
         _gamePanelController.UpdateGameInfo(remainingLife: cardPlayInfo.remainingLife);
     }
 
