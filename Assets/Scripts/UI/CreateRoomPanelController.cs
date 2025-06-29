@@ -51,6 +51,7 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         CreateRoomData roomData = new CreateRoomData()
         {
             playerId = GameManager.Instance.userInfo.userId,
+            nickname = GameManager.Instance.userInfo.nickname,
             roomId = _roomNumber,
             roomSize = _playerNum
         };
@@ -80,8 +81,9 @@ public class CreateRoomPanelController : MonoBehaviour, IGameUI
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom);
         GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
         
-        waitingRoomPanelController.GetIntoRoom(roomData.players);
-        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, _roomNumber, _playerNum);
+        waitingRoomPanelController.GetIntoRoom(roomData.players, roomData.nicknames);
+        GameManager.Instance.multiplayController.SendJoinGame(
+            GameManager.Instance.userInfo.userId, GameManager.Instance.userInfo.nickname,_roomNumber, _playerNum);
         Hide().Forget();
     }
 }

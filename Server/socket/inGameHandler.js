@@ -78,6 +78,8 @@ module.exports = (io, socket) => {
         let remainingCardCount = 0;
         let failed = false;
 
+        console.log(`방 #${roomId}에서 ${playerId}님이 ${cardNumber} 카드를 냈습니다.`);
+
         for (const player of roomInfos[roomId].players) {
 
             lowerNumbers[player] = roomInfos[roomId].cards[player].filter(num => num < cardNumber); // 실패한 숫자

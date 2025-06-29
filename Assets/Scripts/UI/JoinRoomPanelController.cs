@@ -38,6 +38,7 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
         JoinRoomData joinRoomData = new JoinRoomData()
         {
             playerId = GameManager.Instance.userInfo.userId,
+            nickname = GameManager.Instance.userInfo.nickname,
             roomId = _roomNumber
         };
         StartCoroutine(NetworkManager.Instance.JoinRoom(joinRoomData, OnSuccessJoinRoom));
@@ -52,7 +53,8 @@ public class JoinRoomPanelController : MonoBehaviour, IGameUI
     {
         WaitingRoomPanelController waitingRoomPanelController = await UIManager.Instance.ShowUI<WaitingRoomPanelController>(UI_TYPE.WaitingRoom, () => Hide());
         GameManager.Instance.multiplayController.EventJoinRoom += waitingRoomPanelController.AddNewPlayer;
-        waitingRoomPanelController.GetIntoRoom(roomData.players);
-        GameManager.Instance.multiplayController.SendJoinGame(GameManager.Instance.userInfo.userId, _roomNumber, roomData.roomSize);
+        waitingRoomPanelController.GetIntoRoom(roomData.players, roomData.nicknames);
+        GameManager.Instance.multiplayController.SendJoinGame(
+            GameManager.Instance.userInfo.userId, GameManager.Instance.userInfo.nickname, _roomNumber, roomData.roomSize);
     }
 }

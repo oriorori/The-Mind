@@ -10,7 +10,7 @@ function setupRoomHandlers(io, socket){
     const playerId = '';
     const roomId = null;
 
-    socket.on('joinGame', ({playerId, roomId, roomSize}) => { // 방 입장 로직
+    socket.on('joinGame', ({playerId, nickname, roomId, roomSize}) => { // 방 입장 로직
     
         console.log(`사용자 ${playerId}님이 방 #${roomId}에 입장했어요`);
         socket.join(roomId); // 소켓을 roomId에 연결
@@ -26,9 +26,10 @@ function setupRoomHandlers(io, socket){
     // socket.to.emit("이벤트 이름", 데이터1, 데이터2, ...);
     // socket.to(roomId) -> roomId에 연결되어 있는 모든 소켓에게 이벤트를 보냄(자신은 제외)
     // io.to(roomId) -> roomId에 연결되어 있는 모든 소켓에게 이벤트(자신 포함)
-        socket.to(roomId).emit('joinRoomCli', playerId);
+        socket.to(roomId).emit('joinRoomCli', {playerId: playerId, nickname: nickname});
 
         socket.data.playerId = playerId; // socket에 유저 데이터 저장
+        socket.data.nickname = nickname; // socket에 유저 닉네임 저장
         socket.data.roomId = roomId; // socket에 방 데이터 저장
     });
 

@@ -16,7 +16,7 @@ public class MultiplayController
     private Dictionary<string, Action<SocketIOResponse>> socketEventHandlers;
 
     public Dictionary<EventType, Action<SocketIOResponse>> events;
-    public event Action<string> EventJoinRoom;
+    public event Action<JoinRoomInfo> EventJoinRoom;
     public event Action<string> EventLeaveRoom;
     public event Action<GameInfo> EventStartGame;
     public event Action<int[]> EventCardReceive;
@@ -124,9 +124,9 @@ public class MultiplayController
 
     private void OnRoomJoined(SocketIOResponse response)
     {
-        string playerName = response.GetValue<string>();
-        GameManager.Instance.AddNewPlayer(playerName);
-        EventJoinRoom?.Invoke(playerName);
+        JoinRoomInfo joinRoomInfo = JsonConvert.DeserializeObject<JoinRoomInfo[]>(response.ToString())[0];
+        GameManager.Instance.AddNewPlayer(joinRoomInfo.playerId, joinRoomInfo.nickname);
+        EventJoinRoom?.Invoke(joinRoomInfo);
     }
 
     private void OnRoomLeft(SocketIOResponse response)
@@ -264,10 +264,11 @@ public class MultiplayController
     #endregion
     
     #region 소켓으로 송신
-    public void SendJoinGame(string playerId, int roomId, int roomSize)
+    public void SendJoinGame(string playerId, string nickname, int roomId, int roomSize)
     {
         var data = new {
             playerId = playerId,
+            nickname = nickname,
             roomId = roomId,
             roomSize = roomSize
         };

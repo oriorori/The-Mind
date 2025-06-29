@@ -24,6 +24,7 @@ public struct SignInResult
 public struct CreateRoomData
 {
     public string playerId;
+    public string nickname;
     public int roomId;
     public int roomSize;
 }
@@ -31,6 +32,7 @@ public struct CreateRoomData
 public struct JoinRoomData
 {
     public string playerId;
+    public string nickname;
     public int roomId;
 }
 
@@ -39,6 +41,7 @@ public class Room
 {
     public int id;
     public List<string> players;
+    public List<string> nicknames;
     public int roomSize;
     public int playerCount;
 }
@@ -88,4 +91,10 @@ public class ShurikenUseInfo
 {
     public int remainingShurikens;
     public Dictionary<string, int> lowestNumbers;
+}
+
+public class JoinRoomInfo
+{
+    public string playerId;
+    public string nickname;
 }

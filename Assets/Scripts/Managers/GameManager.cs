@@ -17,16 +17,16 @@ public class GameManager : SingletonDontDestroy<GameManager>
     {
         multiplayController = new MultiplayController();
         inGameController = new InGameController();
-        // multiplayController.Initialize();
     }
 
     public void InitCurrentPlayingRoom(Room room)
     {
         currentPlayingRoom = room;
     }
-    public void AddNewPlayer(string playerName)
+    public void AddNewPlayer(string playerName, string nickname)
     {
         currentPlayingRoom.players.Add(playerName);
+        currentPlayingRoom.nicknames.Add(nickname);
     }
 
     public void StartGame(GameInfo gameInfo)

@@ -3,7 +3,7 @@ let rooms = {};
 
 async function createRoom(req, res) {
   try {
-    const { playerId, roomId, roomSize } = req.body;
+    const { playerId, nickname, roomId, roomSize } = req.body;
 
     if(!playerId || !roomId || !roomSize) {
       return res.status(400).json({ error: '필수 값 없음' });
@@ -16,6 +16,7 @@ async function createRoom(req, res) {
     rooms[roomId] = {
       id: roomId,
       players: [playerId],
+      nicknames: [nickname],
       roomSize: roomSize,
       playerCount: 1
     };
@@ -32,7 +33,7 @@ async function createRoom(req, res) {
 
 async function joinRoom(req, res){
   try {
-    const { playerId, roomId } = req.body;
+    const { playerId, nickname, roomId } = req.body;
 
     if (!playerId || !roomId) {
       return res.status(400).json({ error: '필수 값 없음' });
@@ -52,6 +53,7 @@ async function joinRoom(req, res){
     }
 
     room.players.push(playerId);
+    room.nicknames.push(nickname);
     room.playerCount += 1;
     console.log(`✅ ${playerId}님이 방 #${roomId}에 입장했어요`);
     return res.json({ room });

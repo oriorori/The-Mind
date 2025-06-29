@@ -14,7 +14,7 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
     private int _number;
 
-    private float _positionUpdateInterval = 0.03f;
+    private float _positionUpdateInterval = 0.01f;
     private float _elapsedTime = 0f;
     
     private bool IsDraggable { get; set; }

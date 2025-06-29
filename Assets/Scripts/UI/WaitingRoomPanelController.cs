@@ -25,13 +25,13 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         GameManager.Instance.multiplayController.EventBackToRoom += BackToRoom;
     }
     
-    public void GetIntoRoom(List<string> players)
+    public void GetIntoRoom(List<string> players, List<string> nicknames)
     {
         // 처음 방에 들어갈 때 실행
         // http 통신에서 받은 playerList를 이용해 init
-        foreach (string playerName in players)
+        for (int i = 0; i < players.Count; i++)
         {
-            AddWaitingPlayerStatus(playerName);
+            AddWaitingPlayerStatus(players[i], nicknames[i]);
         }
     }
 
@@ -40,11 +40,11 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         _playerStatusDict[playerName].ChangeStatus(WaitingStatus.waiting);
     }
 
-    public void AddNewPlayer(string playerName)
+    public void AddNewPlayer(JoinRoomInfo info)
     {
         // 나는 참가해있고 다른 누군가가 추가로 참가할 때 호출
         // multiplaycontroller의 joinroom에 구독해놓고 socket통신에서 joinRoomCli response가 오면 실행된다
-        AddWaitingPlayerStatus(playerName);
+        AddWaitingPlayerStatus(info.playerId, info.nickname);
     }
     
     public UniTask Show()
@@ -105,14 +105,14 @@ public class WaitingRoomPanelController : MonoBehaviour, IGameUI
         }
     }
 
-    private void AddWaitingPlayerStatus(string playerName)
+    private void AddWaitingPlayerStatus(string playerName, string nickname)
     {
         GameObject playerObject = Instantiate(_playerObject, _playerListRect);
         PlayerWaitingStatusController playerStatusController = playerObject.GetComponent<PlayerWaitingStatusController>();
         playerStatusController.ChangeStatus(WaitingStatus.waiting);
         _playerStatusDict[playerName] = playerStatusController;
         TextMeshProUGUI playerNameText = playerObject.GetComponentInChildren<TextMeshProUGUI>();
-        playerNameText.text = playerName;
+        playerNameText.text = nickname;
     }
 
     void OnDestroy()
