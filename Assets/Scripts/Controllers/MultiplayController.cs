@@ -32,6 +32,7 @@ public class MultiplayController
     public event Action EventRefuseGame;
     public event Action EventReadyGame;
     public event Action<string> EventRollbackCard;
+    public event Action<int, long> EventPongReceived;
     
     Queue<Action> _actionQueue = new Queue<Action>();
     bool _isProcessing = false;
@@ -69,7 +70,8 @@ public class MultiplayController
             { "stageClearCli", OnStageCleared},
             { "gameClearCli", OnGameCleared},
             { "backToRoomCli", OnBackToRoom },
-            { "rollbackCardMovementCli", OnRollbackCardMovement}
+            { "rollbackCardMovementCli", OnRollbackCardMovement},
+            { "pongSyncCli", OnPongSync}
         };
 
         // 소켓(서버)에서 메시지를 보내면 그에 맞는 Action을 실행하도록 이벤트를 연결
@@ -261,6 +263,17 @@ public class MultiplayController
         EventRollbackCard?.Invoke(playerId);
     }
 
+    private void OnPongSync(SocketIOResponse response)
+    {
+        string pongSyncString = response.ToString();
+        PongSync[] pongSyncs = JsonConvert.DeserializeObject<PongSync[]>(pongSyncString);
+        PongSync pongSync = pongSyncs[0];
+        
+        EventPongReceived?.Invoke(pongSync.seq, pongSync.serverTime);
+        
+        // SendSyncResult();
+    }
+
     #endregion
     
     #region 소켓으로 송신
@@ -302,7 +315,9 @@ public class MultiplayController
 
     public void SendPlayCard(int cardNumber)
     {
-        _socket.Emit("playCard", cardNumber);
+        long clientSentTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+        _socket.Emit("playCard", cardNumber, clientSentTime);
     }
 
     public void SendCardMove(float ratioToCenter, float ratioToCenterVertical)
@@ -332,6 +347,17 @@ public class MultiplayController
     public void SendRollbackCardMovement()
     {
         _socket.Emit("rollbackCardMovement");
+    }
+
+    public void SendPingSync(long clientSentTime, int sequence)
+    {
+        _socket.Emit("pingSync", clientSentTime, sequence);
+    }
+
+    public void SendSyncResult(long estimatedOffset, long rtt)
+    {
+        Debug.Log($"estimatedOffset: {estimatedOffset}, rtt: {rtt}");
+        _socket.Emit("syncResult", estimatedOffset, rtt);
     }
     #endregion
 

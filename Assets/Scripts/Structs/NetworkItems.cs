@@ -98,3 +98,9 @@ public class JoinRoomInfo
     public string playerId;
     public string nickname;
 }
+
+public class PongSync
+{
+    public long serverTime;
+    public int seq;
+}

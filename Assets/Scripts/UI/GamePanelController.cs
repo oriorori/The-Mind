@@ -57,6 +57,11 @@ public class GamePanelController : MonoBehaviour, IGameUI
         GameManager.Instance.multiplayController.EventUseShuriken += OnUseShuriken;
         GameManager.Instance.multiplayController.EventRollbackCard += RollBackCardMovement;
     }
+
+    void Start()
+    {
+        
+    }
     
     public UniTask Show()
     {

@@ -2,9 +2,13 @@ module.exports = function(server) {
     const io = require('socket.io')(server);
     const {setupRoomHandlers, removePlayerFromRoom} = require('./roomHandler');
     const setupInGameHandlers = require('./inGameHandler');
+    const {syncClients} = require('./syncHandler');
 
     io.on('connection', (socket) => {
         console.log(`사용자 접속: ${socket.id}`);
+
+        socket.data.offset = 0;
+        socket.data.rttEMA = null;
 
         socket.on('disconnect', (reason) => {
             console.log(`${socket.id} disconnected: ${reason}`);
@@ -18,6 +22,7 @@ module.exports = function(server) {
         });
 
         setupRoomHandlers(io, socket);
+        syncClients(io, socket);
         setupInGameHandlers(io, socket);
    });
 }
