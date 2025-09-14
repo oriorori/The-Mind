@@ -254,24 +254,36 @@ function resolveDecisionWindow(io, roomId){
 
     let remainingCardCount = Object.values(room.workCards).reduce((acc, arr) => acc + arr.length, 0);
 
+        // for (const player of roomInfos[roomId].players) {
+
+        //     lowerNumbers[player] = roomInfos[roomId].cards[player].filter(num => num < cardNumber); // 실패한 숫자
+        //     roomInfos[roomId].cards[player] = roomInfos[roomId].cards[player].filter(num => num > cardNumber); // 남은 숫자
+        //     if(lowerNumbers[player].length > 0) {
+        //         failed = true; // 다른 플레이어가 더 낮은 카드를 가지고 있다면 실패
+        //     }
+        //     remainingCardCount += roomInfos[roomId].cards[player].length; // 남은 카드 개수
+        // }
+
     for (const ev of room.pendingPlays) {
         const { playerId, card } = ev;
 
-        // 여전히 가진 카드인지 확인(같은 윈도우 내 선처리로 인해 사라졌을 수 있음)
+        // 같은 윈도우 내 선처리로 인해 무효처리 됐는지 확인
         const idx = room.workCards[playerId]?.indexOf(card);
         if (idx === -1) continue; // 이미 소비됨(무시)
 
         // 실패/성공 판정(작업용 상태 기준)
         const lowerNumbers = {};
         let failed = false;
-        for (const p of room.players) {
-            const lower = room.workCards[p].filter(n => n < card);
-            lowerNumbers[p] = lower;
-            if (p !== playerId && lower.length > 0) failed = true;
+        for (const player of room.players) {
+            lowerNumbers[player] = room.workCards[player].filter(n => n < card);
+            // lowerNumbers[player] = lower;
+            room.workCards[player] = room.workCards[player].filter(n => n > card);
+            if (lowerNumbers[player].length > 0) failed = true;
+            remainingCardCount -= lowerNumbers[player].length;
         }
 
         // 카드 제거(적용)
-        room.workCards[playerId].splice(idx, 1);
+        // room.workCards[playerId].splice(idx, 1);
         remainingCardCount--;
 
         if (failed) {
