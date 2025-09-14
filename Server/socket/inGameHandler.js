@@ -77,9 +77,6 @@ module.exports = (io, socket) => {
     socket.on('playCard', (cardNumber, clientTime) => {
         const roomId = socket.data.roomId;
         const playerId = socket.data.playerId;
-        const lowerNumbers = {};
-        let remainingCardCount = 0;
-        let failed = false;
         const room = roomInfos[roomId];
 
         const now = Date.now();
@@ -112,44 +109,6 @@ module.exports = (io, socket) => {
         room.windowPlayedSet.add(playerId);
 
         console.log(`방 #${roomId}에서 ${playerId}님이 ${cardNumber} 카드를 낸 것을 수집.`);
-
-        // for (const player of roomInfos[roomId].players) {
-
-        //     lowerNumbers[player] = roomInfos[roomId].cards[player].filter(num => num < cardNumber); // 실패한 숫자
-        //     roomInfos[roomId].cards[player] = roomInfos[roomId].cards[player].filter(num => num > cardNumber); // 남은 숫자
-        //     if(lowerNumbers[player].length > 0) {
-        //         failed = true; // 다른 플레이어가 더 낮은 카드를 가지고 있다면 실패
-        //     }
-        //     remainingCardCount += roomInfos[roomId].cards[player].length; // 남은 카드 개수
-        // }
-
-        // // 실패시
-        // if(failed){
-        //     roomInfos[roomId].remainingLife -= 1; // 생명 감소
-        //     if(roomInfos[roomId].remainingLife <= 0) {
-        //         // 생명이 0이 되면 게임 종료
-        //         roomInfos[roomId].playing = false; // 게임 상태 초기화
-        //         io.to(roomId).emit('gameOverCli', '생명이 모두 소진되었습니다. 게임 오버!');
-        //         return;
-        //     }
-        //     else{
-        //         io.to(roomId).emit('playWrongCardCli', {
-        //             playedCardNumber: cardNumber,
-        //             playedPlayer: playerId,
-        //             remainingLife: roomInfos[roomId].remainingLife,
-        //             lowerNumbers: lowerNumbers
-        //         })
-        //     }
-        // }
-        // else{
-        //     io.to(roomId).emit('playRightCardCli', {
-        //         playedCardNumber: cardNumber,
-        //         playedPlayer: playerId
-        //     });
-        // }
-        
-        // // 남은 카드가 없을 시 => 스테이지 클리어
-        // checkStageClear(io, roomId, remainingCardCount);
     });
 
     // use shuriken at first
@@ -254,16 +213,6 @@ function resolveDecisionWindow(io, roomId){
 
     let remainingCardCount = Object.values(room.workCards).reduce((acc, arr) => acc + arr.length, 0);
 
-        // for (const player of roomInfos[roomId].players) {
-
-        //     lowerNumbers[player] = roomInfos[roomId].cards[player].filter(num => num < cardNumber); // 실패한 숫자
-        //     roomInfos[roomId].cards[player] = roomInfos[roomId].cards[player].filter(num => num > cardNumber); // 남은 숫자
-        //     if(lowerNumbers[player].length > 0) {
-        //         failed = true; // 다른 플레이어가 더 낮은 카드를 가지고 있다면 실패
-        //     }
-        //     remainingCardCount += roomInfos[roomId].cards[player].length; // 남은 카드 개수
-        // }
-
     for (const ev of room.pendingPlays) {
         const { playerId, card } = ev;
 
@@ -281,10 +230,7 @@ function resolveDecisionWindow(io, roomId){
             if (lowerNumbers[player].length > 0) failed = true;
             remainingCardCount -= lowerNumbers[player].length;
         }
-
-        // 카드 제거(적용)
-        // room.workCards[playerId].splice(idx, 1);
-        remainingCardCount--;
+        remainingCardCount--; // 낸 플레이어 본인 고려
 
         if (failed) {
             room.remainingLife -= 1;
